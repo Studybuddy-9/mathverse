@@ -143,20 +143,25 @@ const scatter=document.querySelector('#scatterGraph'),sctx=scatter.getContext('2
 function plotPoints(){
  const parse=id=>document.querySelector(id).value.split(',').map(v=>v.trim()).filter(v=>v!=='').map(Number);
  const xs=parse('#xValues'),ys=parse('#yValues'),msg=document.querySelector('#pointMessage'),w=scatter.width,h=scatter.height;
- if(!xs.length||xs.length!==ys.length||xs.some(v=>!Number.isFinite(v))||ys.some(v=>!Number.isFinite(v))){msg.textContent='Please enter matching X and Y lists containing only valid numbers.';sctx.clearRect(0,0,w,h);return}
+ if(!xs.length||xs.length!==ys.length||xs.some(v=>!Number.isFinite(v))||ys.some(v=>!Number.isFinite(v))){msg.textContent='Please enter matching X and Y lists containing only valid finite numbers.';sctx.clearRect(0,0,w,h);return}
  if(xs.length>100){msg.textContent='Please enter no more than 100 coordinate pairs.';return}
- const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
- const spanX=maxX-minX||Math.max(1,Math.abs(minX)*.2),spanY=maxY-minY||Math.max(1,Math.abs(minY)*.2);
- const loX=minX-spanX*.12,hiX=maxX+spanX*.12,loY=minY-spanY*.12,hiY=maxY+spanY*.12;
- const left=64,right=w-18,top=18,bottom=h-42,X=v=>left+(v-loX)/(hiX-loX)*(right-left),Y=v=>bottom-(v-loY)/(hiY-loY)*(bottom-top);
+ // Normalize first so even very large finite values cannot overflow while calculating the graph scale.
+ const scale=Math.max(1,...xs.map(Math.abs),...ys.map(Math.abs));
+ const nx=xs.map(v=>v/scale),ny=ys.map(v=>v/scale);
+ let minX=Math.min(...nx),maxX=Math.max(...nx),minY=Math.min(...ny),maxY=Math.max(...ny);
+ if(minX===maxX){minX-=.5;maxX+=.5}if(minY===maxY){minY-=.5;maxY+=.5}
+ const padX=(maxX-minX)*.12,padY=(maxY-minY)*.12;minX-=padX;maxX+=padX;minY-=padY;maxY+=padY;
+ const left=64,right=w-18,top=18,bottom=h-42;
+ const X=v=>left+(v-minX)/(maxX-minX)*(right-left),Y=v=>bottom-(v-minY)/(maxY-minY)*(bottom-top);
+ const fmt=v=>{const actual=v*scale;return Number.isFinite(actual)?Number(actual.toPrecision(4)).toString():v.toPrecision(3)+' × '+scale.toExponential(2)};
  sctx.clearRect(0,0,w,h);sctx.fillStyle='#0b1427';sctx.fillRect(0,0,w,h);sctx.font='12px system-ui';sctx.lineWidth=1;
- for(let i=0;i<=5;i++){let x=left+i*(right-left)/5,val=loX+i*(hiX-loX)/5;sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(x,top);sctx.lineTo(x,bottom);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='center';sctx.fillText(Number(val.toPrecision(4)),x,h-20)}
- for(let i=0;i<=5;i++){let y=bottom-i*(bottom-top)/5,val=loY+i*(hiY-loY)/5;sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(left,y);sctx.lineTo(right,y);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='right';sctx.fillText(Number(val.toPrecision(4)),left-8,y+4)}
- if(loY<=0&&hiY>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(left,Y(0));sctx.lineTo(right,Y(0));sctx.stroke()}
- if(loX<=0&&hiX>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(X(0),top);sctx.lineTo(X(0),bottom);sctx.stroke()}
- sctx.strokeStyle='#a99bff';sctx.lineWidth=2;sctx.beginPath();xs.forEach((x,i)=>{if(i===0)sctx.moveTo(X(x),Y(ys[i]));else sctx.lineTo(X(x),Y(ys[i]))});sctx.stroke();
- xs.forEach((x,i)=>{sctx.fillStyle='#68e1fd';sctx.beginPath();sctx.arc(X(x),Y(ys[i]),5,0,Math.PI*2);sctx.fill()});
- msg.textContent=xs.length+' coordinate pair(s) plotted successfully. Values are shown on the axes.';
+ for(let i=0;i<=5;i++){const t=i/5,x=left+t*(right-left),v=minX+t*(maxX-minX);sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(x,top);sctx.lineTo(x,bottom);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='center';sctx.fillText(fmt(v),x,h-20)}
+ for(let i=0;i<=5;i++){const t=i/5,y=bottom-t*(bottom-top),v=minY+t*(maxY-minY);sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(left,y);sctx.lineTo(right,y);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='right';sctx.fillText(fmt(v),left-8,y+4)}
+ if(minY<=0&&maxY>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(left,Y(0));sctx.lineTo(right,Y(0));sctx.stroke()}
+ if(minX<=0&&maxX>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(X(0),top);sctx.lineTo(X(0),bottom);sctx.stroke()}
+ sctx.strokeStyle='#a99bff';sctx.lineWidth=2;sctx.beginPath();nx.forEach((x,i)=>{if(i===0)sctx.moveTo(X(x),Y(ny[i]));else sctx.lineTo(X(x),Y(ny[i]))});sctx.stroke();
+ nx.forEach((x,i)=>{sctx.fillStyle='#68e1fd';sctx.beginPath();sctx.arc(X(x),Y(ny[i]),5,0,Math.PI*2);sctx.fill()});
+ msg.textContent=xs.length+' coordinate pair(s) plotted successfully. Automatic scaling is enabled.';
 }
 document.querySelector('#plotPoints').onclick=plotPoints;plotPoints();
 
@@ -301,7 +306,7 @@ taskNames.forEach((name,i)=>{const label=document.createElement('label');const c
 function updateProgress(){const done=taskBox.querySelectorAll('input:checked').length;document.querySelector('#progressFill').style.width=(done/taskNames.length*100)+'%';document.querySelector('#progressText').textContent=done+' of '+taskNames.length+' tasks completed'}
 document.querySelector('#resetTasks').onclick=()=>{taskBox.querySelectorAll('input').forEach((cb,i)=>{cb.checked=false;localStorage.removeItem('mathverse-task-'+i)});updateProgress()};updateProgress();
 
-const unitCards=[['Unit I','Sets and Functions','23 marks'],['Unit II','Algebra','25 marks'],['Unit III','Coordinate Geometry','12 marks'],['Unit IV','Calculus','8 marks'],['Unit V','Statistics and Probability','12 marks']];const unitBox=document.querySelector('#unitBreakdown');unitCards.forEach(([n,t,m])=>{const d=document.createElement('div');d.className='card';d.innerHTML='<span class="pill">'+n+'</span><h3>'+t+'</h3><p>'+m+'</p>';unitBox.append(d)});
+// The old syllabus widget was removed from the page; do not access its missing container.
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};const dateInput=document.querySelector('#studyDate');dateInput.value=todayISO();
 let activeStudent=localStorage.getItem('mathverse-active-student')||'';
 function getStudents(){try{return JSON.parse(localStorage.getItem('mathverse-students')||'[]')}catch{return []}}
