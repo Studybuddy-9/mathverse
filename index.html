@@ -41,7 +41,7 @@ const chapters=[
 ["Statistics","Measures of dispersion: range, mean deviation, variance and standard deviation for grouped and ungrouped data."],
 ["Probability","Events; not, and and or events; exhaustive and mutually exclusive events; axiomatic probability; probability of events and complements."]
 ];
-const formulas=
+const formulas=[
 ["Sets","n(A∪B)=n(A)+n(B)−n(A∩B)"],["Trigonometry","sin²θ + cos²θ = 1"],["Trigonometry","1 + tan²θ = sec²θ"],["Complex numbers","i² = −1; |a+ib| = √(a²+b²)"],["Permutations","ⁿPᵣ = n!/(n−r)!"],["Combinations","ⁿCᵣ = n!/[r!(n−r)!]"],["Binomial theorem","(a+b)ⁿ = Σ ⁿCᵣ aⁿ⁻ʳbʳ"],["AP","aₙ = a + (n−1)d"],["AP","Sₙ = n/2 [2a+(n−1)d]"],["GP","aₙ = arⁿ⁻¹"],["Straight lines","y−y₁ = m(x−x₁)"],["3D geometry","d = √[(x₂−x₁)²+(y₂−y₁)²+(z₂−z₁)²]"],["Derivatives","d(xⁿ)/dx = nxⁿ⁻¹"],["Probability","P(E)=n(E)/n(S)"]
 ];
 const cg=document.querySelector('#chaptersGrid'), lesson=document.querySelector('#lesson');
@@ -64,24 +64,23 @@ function saveQuizScore(){const scores=JSON.parse(localStorage.getItem('mathverse
 function quiz(){answered=false;document.querySelector('#question').textContent='Question '+(qi+1)+' of '+qs.length+': '+qs[qi][0];document.querySelector('#feedback').textContent='';document.querySelector('#options').innerHTML='';qs[qi][1].forEach((v,i)=>{let b=document.createElement('button');b.className='quiz-option';b.textContent=v;b.onclick=()=>{if(answered)return;answered=true;if(i===qs[qi][2]){score++;document.querySelector('#feedback').textContent='Correct! Great work.'}else document.querySelector('#feedback').textContent='Not quite. Correct answer: '+qs[qi][1][qs[qi][2]];document.querySelector('#score').textContent='Score: '+score+'/'+qs.length;if(qi===qs.length-1)saveQuizScore()};document.querySelector('#options').append(b)});document.querySelector('#next').textContent=qi===qs.length-1?'Restart quiz':'Next question →'}
 document.querySelector('#next').onclick=()=>{if(qi===qs.length-1){qi=0;score=0;document.querySelector('#score').textContent='';quiz()}else{qi++;quiz()}};document.querySelector('#clearScores').onclick=()=>{if(confirm('Clear all saved scoreboard results on this device?')){localStorage.removeItem('mathverse-scores');renderLeaderboard()}};renderLeaderboard();quiz();
 
-const deepData=[
-{concepts:["Roster and set-builder notation","Empty set, universal set and subsets","Union, intersection, difference and complement","Venn diagrams and cardinality"],tips:["Write the universal set clearly in complement questions.","Use a Venn diagram when sets overlap."],example:"If n(A)=20, n(B)=15 and n(A∩B)=5, then n(A∪B)=20+15−5=30."},
-{concepts:["Cartesian product and ordered pairs","Domain, codomain and range","Relations and their types","One-one, onto and bijective functions"],tips:["A function gives exactly one output for each input.","Do not confuse codomain with range."],example:"For f(x)=2x+1, f(3)=2(3)+1=7."},
-{concepts:["Degree and radian measure","Signs of ratios in quadrants","Trigonometric identities","Graphs and periodicity"],tips:["Convert degrees to radians using π/180.","Check the quadrant before deciding the sign."],example:"sin 30°=1/2 and cos 60°=1/2, so sin²30°+cos²30°=1."},
-{concepts:["Base step","Induction hypothesis","Induction step from k to k+1","Conclusion for all natural numbers"],tips:["State the induction hypothesis explicitly.","Show the k+1 expression algebraically."],example:"To prove 1+2+…+n=n(n+1)/2: assume true for k, then add k+1 to get k(k+1)/2+k+1=(k+1)(k+2)/2."},
-{concepts:["Imaginary unit i","Algebra of complex numbers","Conjugate and modulus","Quadratic equations and discriminant"],tips:["Replace i² with −1 while simplifying.","Use the conjugate to simplify division."],example:"(3+2i)+(1−5i)=4−3i."},
-{concepts:["Linear inequalities in one variable","Rules for adding and multiplying","Reversing the sign when multiplying by a negative","Interval and number-line representation"],tips:["Reverse the inequality sign when multiplying or dividing by a negative number.","Show endpoints correctly on the number line."],example:"−2x<6. Divide by −2 and reverse the sign: x>−3."},
-{concepts:["Fundamental counting principle","Factorials","Permutations: order matters","Combinations: order does not matter"],tips:["Ask whether order matters before choosing nPr or nCr.","Simplify factorials before multiplying."],example:"Number of ways to arrange 3 distinct books = 3! = 6."},
-{concepts:["Binomial expansion","General term","Binomial coefficients","Middle term"],tips:["The power of the first term decreases as the second increases.","The general term is T(r+1)=nCr a^(n−r)b^r."],example:"Coefficient of x² in (x+2)³ is 3×x²×2=6."},
-{concepts:["Sequence and series","Arithmetic progression and common difference","Geometric progression and common ratio","nth term and sum"],tips:["Identify d for AP and r for GP.","Check whether the question asks for a term or a sum."],example:"For AP 2,5,8,…, a₁₀=2+9×3=29."},
-{concepts:["Slope of a line","Angle of inclination","Point-slope and two-point forms","Parallel and perpendicular lines"],tips:["Parallel lines have equal slopes.","For non-vertical perpendicular lines, m₁m₂=−1."],example:"Through (1,2) with slope 3: y−2=3(x−1), so y=3x−1."},
-{concepts:["Circle","Parabola","Ellipse","Hyperbola and standard forms"],tips:["Learn the standard equation and identify its centre or focus.","Sketch a small labelled diagram when useful."],example:"The circle x²+y²=25 has centre (0,0) and radius 5."},
-{concepts:["Coordinates in three dimensions","Octants","Distance between two points","Section and midpoint ideas"],tips:["Keep x, y and z coordinates in the correct order.","Square each coordinate difference before adding."],example:"Distance between (0,0,0) and (1,2,2) is √(1+4+4)=3."},
-{concepts:["Intuitive idea of a limit","Left-hand and right-hand limits","Derivative as rate of change","Basic derivative rules"],tips:["Substitute directly when the function is continuous at the point.","Remember that derivative represents slope of the tangent."],example:"If f(x)=x², then f′(x)=2x; at x=3, the derivative is 6."},
-{concepts:["Statements and truth values","Negation","Conjunction and disjunction","Implication and equivalence"],tips:["Use a truth table for compound statements.","The negation of ‘all’ is ‘there exists at least one not’."],example:"If p is true and q is false, p∧q is false while p∨q is true."},
-{concepts:["Range and mean deviation","Variance and standard deviation","Measures of dispersion","Comparing data sets"],tips:["Keep units consistent throughout calculations.","A lower standard deviation means values are less spread out."],example:"For data 2,4,6, the mean is 4 and the population variance is [(−2)²+0²+2²]/3=8/3."},
-{concepts:["Random experiments and outcomes","Sample space and events","Complement of an event","Probability properties"],tips:["Probability lies between 0 and 1.","Use P(not A)=1−P(A)."],example:"For a fair die, P(even number)=3/6=1/2."}
+const examples=[
+"If A={1,2,3} and B={3,4}, then A∪B={1,2,3,4} and A∩B={3}.",
+"For f(x)=2x+1, f(3)=7; the domain is the allowed input set.",
+"sin 30°=1/2 and cos 30°=√3/2, so sin²30°+cos²30°=1.",
+"(3+2i)+(1−5i)=4−3i.",
+"Solving −2x<6 gives x>−3 because the inequality reverses when dividing by −2.",
+"The number of arrangements of 3 distinct books is 3!=6.",
+"The coefficient of x² in (x+2)³ is 6.",
+"For the GP 2,6,18,…, the fifth term is 2×3⁴=162.",
+"Through (1,2) with slope 3: y−2=3(x−1), so y=3x−1.",
+"The circle x²+y²=25 has centre (0,0) and radius 5.",
+"Distance between (0,0,0) and (1,2,2) is √(1+4+4)=3.",
+"If f(x)=x², then f′(x)=2x; at x=3, the derivative is 6.",
+"For data 2,4,6, the mean is 4 and population variance is 8/3.",
+"For a fair die, P(even number)=3/6=1/2."
 ];
+const deepData=chapters.map((chapter,i)=>({concepts:chapter[1].split('; '),tips:["Write down the given information and identify the exact concept or formula needed.","Solve one worked example, then try a similar question without looking at the solution."],example:examples[i]}));
 const deepSelect=document.querySelector('#deepChapter');
 chapters.forEach(([name],i)=>{const o=document.createElement('option');o.value=i;o.textContent=(i+1)+'. '+name;deepSelect.append(o)});
 function renderDeep(){const d=deepData[+deepSelect.value];document.querySelector('#deepConcepts').innerHTML=d.concepts.map(x=>'<li>'+x+'</li>').join('');document.querySelector('#deepTips').innerHTML=d.tips.map(x=>'<li>'+x+'</li>').join('');document.querySelector('#deepExample').textContent=d.example}
