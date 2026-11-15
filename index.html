@@ -331,8 +331,7 @@ dateInput.onchange=renderStudy;document.querySelector('#clearStudy').onclick=()=
 // Projectile motion visualiser (ideal model; no air resistance).
 (()=>{const $=id=>document.getElementById(id),cv=$('projectileCanvas');if(!cv)return;const ctx=cv.getContext('2d'),g=9.8;let frame=null;function draw(){const u=Number($('projSpeed').value),deg=Number($('projAngle').value),h=Number($('projHeight').value);if(!Number.isFinite(u)||u<=0||u>100||!Number.isFinite(deg)||deg<=0||deg>=90||!Number.isFinite(h)||h<0||h>100){$('projTime').textContent='Check inputs';return null}const a=deg*Math.PI/180,vx=u*Math.cos(a),vy=u*Math.sin(a),T=(vy+Math.sqrt(vy*vy+2*g*h))/g,H=h+vy*vy/(2*g),R=vx*T;const xMax=Math.max(R*1.12,5),yMax=Math.max(H*1.2,5),W=cv.width,HH=cv.height,L=62,B=HH-45,plotW=W-95,plotH=HH-85,X=x=>L+x/xMax*plotW,Y=y=>B-y/yMax*plotH;ctx.clearRect(0,0,W,HH);ctx.strokeStyle='#52617d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(L,18);ctx.lineTo(L,B);ctx.lineTo(W-20,B);ctx.stroke();ctx.fillStyle='#a8b5cf';ctx.font='14px system-ui';ctx.fillText('Height (m)',8,20);ctx.fillText('Horizontal distance (m)',W-220,HH-10);for(let i=0;i<=4;i++){let x=xMax*i/4,y=yMax*i/4;ctx.fillText(x.toFixed(1),X(x)-10,B+20);ctx.fillText(y.toFixed(1),L-42,Y(y)+4);ctx.strokeStyle='#263752';ctx.beginPath();ctx.moveTo(X(x),18);ctx.lineTo(X(x),B);ctx.moveTo(L,Y(y));ctx.lineTo(W-20,Y(y));ctx.stroke()}ctx.strokeStyle='#68e1fd';ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<=100;i++){const t=T*i/100,x=vx*t,y=h+vy*t-.5*g*t*t;if(i===0)ctx.moveTo(X(x),Y(y));else ctx.lineTo(X(x),Y(Math.max(0,y)))}ctx.stroke();const apexT=vy/g;ctx.fillStyle='#a99bff';ctx.beginPath();ctx.arc(X(vx*apexT),Y(H),6,0,Math.PI*2);ctx.fill();ctx.fillStyle='#edf3ff';ctx.fillText('Highest point',Math.min(X(vx*apexT)+10,W-120),Math.max(30,Y(H)-10));ctx.fillStyle='#68e1fd';ctx.beginPath();ctx.arc(X(0),Y(h),6,0,Math.PI*2);ctx.fill();ctx.fillText('Launch',X(0)+10,Y(h)-10);$('projVx').textContent=vx.toFixed(2)+' m/s';$('projVy').textContent=vy.toFixed(2)+' m/s';$('projTime').textContent=T.toFixed(2)+' s';$('projMax').textContent=H.toFixed(2)+' m';$('projRange').textContent=R.toFixed(2)+' m';return {T,vx,vy,h,X,Y};}function animate(){const d=draw();if(!d)return;cancelAnimationFrame(frame);const start=performance.now(),duration=Math.max(1200,d.T*350);function tick(now){draw();const t=Math.min(d.T,(now-start)/duration*d.T),x=d.vx*t,y=Math.max(0,d.h+d.vy*t-.5*g*t*t);const W=cv.width;ctx.fillStyle='#ffca70';ctx.beginPath();ctx.arc(d.X(x),d.Y(y),9,0,Math.PI*2);ctx.fill();if(t<d.T)frame=requestAnimationFrame(tick)}frame=requestAnimationFrame(tick)}$('drawProjectile').onclick=draw;$('playProjectile').onclick=animate;['projSpeed','projAngle','projHeight'].forEach(id=>$(id).addEventListener('input',draw));draw()})();
 // NCERT Class 11 reaction reference library (2026-27 syllabus coverage).
-(()=>{
- const reactions=[
+const ncertReactionExamples=[
  {ch:"Stoichiometry",name:"Formation of water",eq:"2H₂ + O₂ → 2H₂O",note:"A standard mole-ratio and mass-ratio example."},
  {ch:"Equilibrium",name:"Formation of ammonia (Haber equilibrium)",eq:"N₂(g) + 3H₂(g) ⇌ 2NH₃(g)",note:"A reversible gaseous reaction; pressure and temperature affect equilibrium."},
  {ch:"Equilibrium",name:"Formation of hydrogen iodide",eq:"H₂(g) + I₂(g) ⇌ 2HI(g)",note:"A familiar example of dynamic chemical equilibrium."},
@@ -375,6 +374,8 @@ dateInput.onchange=renderStudy;document.querySelector('#clearStudy').onclick=()=
  {ch:"Hydrocarbons",name:"Wurtz reaction",eq:"2CH₃Br + 2Na → C₂H₆ + 2NaBr",note:"Coupling of haloalkane molecules gives a higher alkane."},
  {ch:"Hydrocarbons",name:"Decarboxylation with soda lime",eq:"CH₃COONa + NaOH → CH₄ + Na₂CO₃",note:"Sodium ethanoate gives methane on decarboxylation."}
  ];
+(()=>{
+ const reactions=ncertReactionExamples;
  const list=document.getElementById('reactionLibraryList'),search=document.getElementById('reactionSearch'),filter=document.getElementById('reactionChapter'),count=document.getElementById('reactionCount');
  if(!list||!search||!filter)return;
  function render(){
@@ -395,9 +396,7 @@ dateInput.onchange=renderStudy;document.querySelector('#clearStudy').onclick=()=
  search.addEventListener('input',render);filter.addEventListener('change',render);render();
 })();
 
-// Place all NCERT reaction examples directly inside the existing reaction selector.
-// Reference-only entries display their balanced equation; the four calculator presets
-// remain available for mass/limiting-reactant calculations.
+// Chemical Reaction Machine: balanced reaction selector + classroom stoichiometry calculator.
 document.addEventListener('DOMContentLoaded',()=>{
  const choice=document.getElementById('reactionChoice');
  const group=document.getElementById('ncertReactionOptions');
@@ -406,30 +405,58 @@ document.addEventListener('DOMContentLoaded',()=>{
  const run=document.getElementById('runReaction');
  const one=document.getElementById('reactantOne'),two=document.getElementById('reactantTwo');
  const oneLabel=document.getElementById('reactantOneLabel'),twoLabel=document.getElementById('reactantTwoLabel');
- if(!choice||!group||!equation)return;
- const originalOptions=[...choice.querySelectorAll('option')].filter(o=>!o.value.startsWith('reference-'));
- reactions.forEach((r,i)=>{
-  const opt=document.createElement('option');opt.value='reference-'+i;opt.textContent=r.ch+' — '+r.name;group.append(opt);
- });
- function updateReactionChoice(){
-  const value=choice.value;
-  if(value.startsWith('reference-')){
-   const r=reactions[Number(value.slice(10))];if(!r)return;
-   equation.textContent=r.eq;
-   if(one)one.disabled=true;if(two)two.disabled=true;
-   if(oneLabel)oneLabel.textContent='Reactant amounts (not used for this reference)';
-   if(twoLabel)twoLabel.textContent='Select a calculator reaction to enter masses';
-   if(run)run.disabled=true;
-   if(output)output.innerHTML='';
-   if(output){const b=document.createElement('b');b.textContent=r.name;const p=document.createElement('p');p.className='muted';p.textContent=r.ch+' • '+r.note+' This is a reaction reference, not a mass-calculation preset.';output.append(b,p);}
-  }else{
-   if(one)one.disabled=false;if(two)two.disabled=false;if(run)run.disabled=false;
-   if(oneLabel)oneLabel.textContent='Enter the first reactant amount (grams)';
-   if(twoLabel)twoLabel.textContent='Enter the second reactant amount (grams)';
-   // Trigger the original preset's change handler, if present.
-   choice.dispatchEvent(new Event('change',{bubbles:true}));
+ if(!choice||!group||!equation||!output||!run||!one||!two)return;
+ const M={H2:2.016,O2:31.998,H2O:18.015,N2:28.014,NH3:17.031,Na:22.990,Cl2:70.90,NaCl:58.44,CH4:16.043,CO2:44.01};
+ const presets={
+  water:{eq:'2H₂ + O₂ → 2H₂O',a:'Hydrogen (H₂), grams',b:'Oxygen (O₂), grams',r1:'H2',c1:2,r2:'O2',c2:1,products:[['H2O',2]]},
+  ammonia:{eq:'N₂ + 3H₂ → 2NH₃',a:'Nitrogen (N₂), grams',b:'Hydrogen (H₂), grams',r1:'N2',c1:1,r2:'H2',c2:3,products:[['NH3',2]]},
+  salt:{eq:'2Na + Cl₂ → 2NaCl',a:'Sodium (Na), grams',b:'Chlorine (Cl₂), grams',r1:'Na',c1:2,r2:'Cl2',c2:1,products:[['NaCl',2]]},
+  methane:{eq:'CH₄ + 2O₂ → CO₂ + 2H₂O',a:'Methane (CH₄), grams',b:'Oxygen (O₂), grams',r1:'CH4',c1:1,r2:'O2',c2:2,products:[['CO2',1],['H2O',2]]}
+ };
+ ncertReactionExamples.forEach((r,i)=>{const o=document.createElement('option');o.value='reference-'+i;o.textContent=r.ch+' — '+r.name;group.append(o)});
+ function showPreset(){
+  const p=presets[choice.value];
+  if(!p)return false;
+  equation.textContent=p.eq;one.disabled=false;two.disabled=false;run.disabled=false;
+  oneLabel.textContent=p.a;twoLabel.textContent=p.b;
+  output.innerHTML='<b>Ready to calculate.</b><p class="muted">Enter the masses of both reactants in grams, then select Run reaction calculation.</p>';
+  return true;
+ }
+ function calculate(){
+  const p=presets[choice.value];if(!p)return;
+  const m1=Number(one.value),m2=Number(two.value);
+  if(!Number.isFinite(m1)||!Number.isFinite(m2)||m1<0||m2<0||(m1===0&&m2===0)){
+   output.textContent='Please enter valid positive masses for both reactants (at least one must be greater than zero).';return;
+  }
+  const n1=m1/M[p.r1],n2=m2/M[p.r2];
+  const extent=Math.min(n1/p.c1,n2/p.c2);
+  const used1=extent*p.c1,used2=extent*p.c2;
+  const remain1=Math.max(0,n1-used1)*M[p.r1],remain2=Math.max(0,n2-used2)*M[p.r2];
+  const lines=[];
+  lines.push('Limiting reactant: '+(n1/p.c1<=n2/p.c2?p.r1:p.r2));
+  lines.push('Theoretical product(s):');
+  p.products.forEach(([formula,coef])=>lines.push('• '+formula+': '+(extent*coef*M[formula]).toFixed(3)+' g'));
+  lines.push('Unreacted '+p.r1+': '+remain1.toFixed(3)+' g');
+  lines.push('Unreacted '+p.r2+': '+remain2.toFixed(3)+' g');
+  output.innerHTML='';
+  const strong=document.createElement('b');strong.textContent='Calculation result';output.append(strong);
+  const ul=document.createElement('ul');lines.forEach(line=>{const li=document.createElement('li');li.textContent=line;ul.append(li)});output.append(ul);
+  const note=document.createElement('p');note.className='muted';note.textContent='Theoretical values use standard molar masses and assume the reaction goes to completion. Small rounding differences are normal.';output.append(note);
+ }
+ function selectReaction(){
+  const p=presets[choice.value];
+  if(p){showPreset();return}
+  if(choice.value.startsWith('reference-')){
+   const r=ncertReactionExamples[Number(choice.value.slice(10))];if(!r)return;
+   equation.textContent=r.eq;one.disabled=true;two.disabled=true;run.disabled=true;
+   oneLabel.textContent='Not needed for reaction reference';twoLabel.textContent='Choose a calculator reaction to enter masses';
+   output.innerHTML='';const b=document.createElement('b');b.textContent=r.name;
+   const note=document.createElement('p');note.className='muted';note.textContent=r.ch+' — '+r.note+' This selection is for equation revision; mass calculation is available for the four calculator presets.';
+   output.append(b,note);
   }
  }
- choice.addEventListener('change',updateReactionChoice);
+ choice.addEventListener('change',selectReaction);
+ run.addEventListener('click',calculate);
+ showPreset();
 });
 </script></body></html>
