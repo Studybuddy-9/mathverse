@@ -47,17 +47,7 @@
 
 
 <section id="projectile"><div class="heading"><div><div class="tag">PHYSICS • MOTION IN TWO DIMENSIONS</div><h2>Projectile Motion Simulator</h2><p class="muted">Change the launch speed and angle. Watch the ball follow a parabolic path and explore its horizontal and vertical motion.</p></div></div><div class="lab-panel"><div class="lab-controls"><div><label for="projSpeed">Initial speed (m/s)</label><input id="projSpeed" type="number" min="1" max="100" value="20" step="1"></div><div><label for="projAngle">Launch angle (degrees)</label><input id="projAngle" type="number" min="1" max="89" value="45" step="1"></div><div><label for="projHeight">Initial height (m)</label><input id="projHeight" type="number" min="0" max="100" value="0" step="1"></div></div><canvas id="projectileCanvas" class="lab-canvas" width="900" height="390" aria-label="Projectile trajectory diagram"></canvas><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="drawProjectile">Update diagram</button><button class="btn secondary" id="playProjectile">▶ Animate ball</button></div><div class="lab-readouts"><div class="lab-stat"><span class="muted">Horizontal velocity</span><b id="projVx">—</b></div><div class="lab-stat"><span class="muted">Vertical velocity</span><b id="projVy">—</b></div><div class="lab-stat"><span class="muted">Time of flight</span><b id="projTime">—</b></div><div class="lab-stat"><span class="muted">Maximum height</span><b id="projMax">—</b></div><div class="lab-stat"><span class="muted">Horizontal range</span><b id="projRange">—</b></div><div class="lab-stat"><span class="muted">At highest point</span><b id="projTop">Vy = 0</b></div><div class="lab-stat"><span class="muted">Acceleration</span><b>9.8 m/s² ↓</b></div><div class="lab-stat"><span class="muted">Path shape</span><b>Parabola</b></div></div><p class="lab-note">Model assumptions: no air resistance, constant gravitational acceleration g = 9.8 m/s², and the ball lands at ground level. The horizontal velocity stays constant while vertical velocity changes due to gravity.</p><div class="example"><b>Key equations</b><p>uₓ = u cos θ • uᵧ = u sin θ</p><p>Time of flight: T = (u sin θ + √((u sin θ)² + 2gh)) / g</p><p>Maximum height: H = h + (u sin θ)² / (2g)</p><p>Horizontal range: R = u cos θ × T</p></div></div></section>
-<section id="reaction-machine"><div class="heading"><div><div class="tag">CHEMISTRY • STOICHIOMETRY</div><h2>Chemical Reaction Machine</h2><p class="muted">Choose a reaction, enter the amounts of reactants, and see what can form, which reactant runs out first, and what remains.</p></div></div><div class="lab-panel"><div class="lab-controls"><div><label for="reactionChoice">Choose a balanced reaction</label><select id="reactionChoice"><option value="water">Hydrogen + Oxygen → Water</option><option value="ammonia">Nitrogen + Hydrogen → Ammonia</option><option value="salt">Sodium + Chlorine → Sodium chloride</option><option value="methane">Methane + Oxygen → Carbon dioxide + Water</option></select></div><div><label id="reactantOneLabel" for="reactantOne">Hydrogen (H₂), grams</label><input id="reactantOne" type="number" min="0" step="any" value="2"></div><div><label id="reactantTwoLabel" for="reactantTwo">Oxygen (O₂), grams</label><input id="reactantTwo" type="number" min="0" step="any" value="16"></div></div><div class="reaction-equation" id="reactionEquation">2H₂ + O₂ → 2H₂O</div><button class="btn" id="runReaction">Run reaction calculation</button><div id="reactionOutput" class="reaction-result" aria-live="polite"><b>Ready to calculate.</b><p class="muted">For water, hydrogen and oxygen combine in a 1:8 mass ratio. Try 2 g hydrogen and 16 g oxygen.</p></div><div class="reaction-library" style="margin-top:22px">
-<h3>NCERT Class 11 reaction library</h3>
-<p class="lab-note">Browse important balanced equations and reaction patterns from the current Class 11 Chemistry units. Use the search box or chapter filter to revise.</p>
-<div class="lab-controls" style="margin:12px 0">
-<div><label for="reactionSearch">Search reaction, formula or keyword</label><input id="reactionSearch" type="search" placeholder="e.g. ozonolysis, benzene, redox" style="width:100%;margin-top:5px"></div>
-<div><label for="reactionChapter">Filter by NCERT chapter</label><select id="reactionChapter" style="width:100%;margin-top:5px"><option value="All">All reaction chapters</option><option>Equilibrium</option><option>Redox Reactions</option><option>Organic Chemistry: Basic Principles</option><option>Hydrocarbons</option><option>Stoichiometry</option></select></div>
-</div>
-<p id="reactionCount" class="pill" aria-live="polite"></p>
-<div id="reactionLibraryList" class="detail-grid"></div>
-</div>
-<p class="lab-note">This is a classroom stoichiometry simulator. It calculates theoretical quantities from a balanced equation; it does not perform a real chemical reaction. Never mix chemicals based on this simulation.</p></div></section>
+<section id="reaction-machine"><div class="heading"><div><div class="tag">CHEMISTRY • STOICHIOMETRY</div><h2>Chemical Reaction Machine</h2><p class="muted">Choose a reaction, enter the amounts of reactants, and see what can form, which reactant runs out first, and what remains.</p></div></div><div class="lab-panel"><div class="lab-controls"><div><label for="reactionChoice">Choose a balanced reaction</label><select id="reactionChoice"><optgroup label="Stoichiometry calculator"><option value="water">Hydrogen + Oxygen → Water</option><option value="ammonia">Nitrogen + Hydrogen → Ammonia</option><option value="salt">Sodium + Chlorine → Sodium chloride</option><option value="methane">Methane + Oxygen → Carbon dioxide + Water</option></optgroup><optgroup label="NCERT reaction examples" id="ncertReactionOptions"></optgroup></select></div><div><label id="reactantOneLabel" for="reactantOne">Hydrogen (H₂), grams</label><input id="reactantOne" type="number" min="0" step="any" value="2"></div><div><label id="reactantTwoLabel" for="reactantTwo">Oxygen (O₂), grams</label><input id="reactantTwo" type="number" min="0" step="any" value="16"></div></div><div class="reaction-equation" id="reactionEquation">2H₂ + O₂ → 2H₂O</div><button class="btn" id="runReaction">Run reaction calculation</button><div id="reactionOutput" class="reaction-result" aria-live="polite"><b>Ready to calculate.</b><p class="muted">For water, hydrogen and oxygen combine in a 1:8 mass ratio. Try 2 g hydrogen and 16 g oxygen.</p></div><p class="lab-note">This is a classroom stoichiometry simulator. It calculates theoretical quantities from a balanced equation; it does not perform a real chemical reaction. Never mix chemicals based on this simulation.</p></div></section>
 </main><footer><div class="wrap"><b class="brand">∑ <span>StudyBuddy</span></b><p>Understand the idea. Then solve the problem.</p><small>Independent learning project for Class 11 students. Follow your prescribed textbooks and current school syllabus for exam preparation.</small></div></footer>
 <script>
 const chapters=[
@@ -404,4 +394,42 @@ dateInput.onchange=renderStudy;document.querySelector('#clearStudy').onclick=()=
  }
  search.addEventListener('input',render);filter.addEventListener('change',render);render();
 })();
+
+// Place all NCERT reaction examples directly inside the existing reaction selector.
+// Reference-only entries display their balanced equation; the four calculator presets
+// remain available for mass/limiting-reactant calculations.
+document.addEventListener('DOMContentLoaded',()=>{
+ const choice=document.getElementById('reactionChoice');
+ const group=document.getElementById('ncertReactionOptions');
+ const equation=document.getElementById('reactionEquation');
+ const output=document.getElementById('reactionOutput');
+ const run=document.getElementById('runReaction');
+ const one=document.getElementById('reactantOne'),two=document.getElementById('reactantTwo');
+ const oneLabel=document.getElementById('reactantOneLabel'),twoLabel=document.getElementById('reactantTwoLabel');
+ if(!choice||!group||!equation)return;
+ const originalOptions=[...choice.querySelectorAll('option')].filter(o=>!o.value.startsWith('reference-'));
+ reactions.forEach((r,i)=>{
+  const opt=document.createElement('option');opt.value='reference-'+i;opt.textContent=r.ch+' — '+r.name;group.append(opt);
+ });
+ function updateReactionChoice(){
+  const value=choice.value;
+  if(value.startsWith('reference-')){
+   const r=reactions[Number(value.slice(10))];if(!r)return;
+   equation.textContent=r.eq;
+   if(one)one.disabled=true;if(two)two.disabled=true;
+   if(oneLabel)oneLabel.textContent='Reactant amounts (not used for this reference)';
+   if(twoLabel)twoLabel.textContent='Select a calculator reaction to enter masses';
+   if(run)run.disabled=true;
+   if(output)output.innerHTML='';
+   if(output){const b=document.createElement('b');b.textContent=r.name;const p=document.createElement('p');p.className='muted';p.textContent=r.ch+' • '+r.note+' This is a reaction reference, not a mass-calculation preset.';output.append(b,p);}
+  }else{
+   if(one)one.disabled=false;if(two)two.disabled=false;if(run)run.disabled=false;
+   if(oneLabel)oneLabel.textContent='Enter the first reactant amount (grams)';
+   if(twoLabel)twoLabel.textContent='Enter the second reactant amount (grams)';
+   // Trigger the original preset's change handler, if present.
+   choice.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+ }
+ choice.addEventListener('change',updateReactionChoice);
+});
 </script></body></html>
