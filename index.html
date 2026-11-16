@@ -436,7 +436,7 @@ const questionBank={
  {c:'Hydrocarbons',l:'Medium',q:'The molecular formula of ethene is:',o:['C₂H₂','C₂H₄','C₂H₆','CH₄'],a:1,e:'Ethene is an alkene with formula C₂H₄.'},
  {c:'Hydrocarbons',l:'Hard',q:'Addition of H₂ to ethene in the presence of a suitable catalyst produces:',o:['Ethane','Ethyne','Methane','Ethanol'],a:0,e:'Hydrogenation adds hydrogen across the double bond to form ethane.'}
  ]};
-let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false;
+let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false,practiceRoundNote='';
 function refreshPracticeChapters(){
  const subjectSelect=document.querySelector('#practiceSubject'),sel=document.querySelector('#practiceChapter');
  if(!subjectSelect||!sel)return;
@@ -476,7 +476,7 @@ function startPractice(){
  let pool=shuffle(primary).concat(shuffle(extras));
  pool=unique(pool);
  if(!pool.length){status.textContent='There are no questions loaded for '+s+' yet. Please choose another subject.';area.innerHTML='';nav.style.display='none';return}
- practiceRound=pool.slice(0,requested);practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
+ practiceRound=pool.slice(0,requested);practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;practiceRoundNote=poolNote+(practiceRound.length<requested?' Only '+practiceRound.length+' unique questions are currently available for these settings.':'');review.innerHTML='';nav.style.display='block';
  document.querySelector('#practiceCount').value=requested;
  status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+(level==='All'?'all difficulty levels':level+' level')+(practiceRound.length<requested?' • The question bank currently contains only '+pool.length+' unique questions for this selection.':'')+poolNote;
  renderPracticeQuestion();
@@ -512,7 +512,7 @@ function renderPracticeQuestion(){
 }
 function updatePracticeStatus(){
  const answered=practiceAnswers.filter(a=>a!==null).length,correct=practiceAnswers.filter(a=>a&&a.correct).length,wrong=answered-correct,left=practiceRound.length-answered;
- document.querySelector('#practiceStatus').textContent='Showing all '+practiceRound.length+' questions • Viewed Q'+(practiceIndex+1)+' • Answered '+answered+' • Correct '+correct+' • Incorrect '+wrong+' • Left '+left;
+ document.querySelector('#practiceStatus').textContent='Showing all '+practiceRound.length+' questions • Viewed Q'+(practiceIndex+1)+' • Answered '+answered+' • Correct '+correct+' • Incorrect '+wrong+' • Left '+left+practiceRoundNote;
 }
 function renderPracticeMap(){
  const map=document.querySelector('#practiceQuestionMap');map.innerHTML='';
