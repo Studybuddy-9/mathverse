@@ -445,7 +445,7 @@ function renderPracticeQuestion(){
  const feedback=document.createElement('p');feedback.className='feedback';feedback.setAttribute('aria-live','polite');
  q.o.forEach((option,j)=>{const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
  if(saved){b.disabled=true;if(j===q.a)b.classList.add('correct');else if(j===saved.choice)b.classList.add('wrong')}
- b.onclick=()=>{if(practiceAnswers[practiceIndex]!==null)return;practiceAnswers[practiceIndex]={choice:j,correct:j===q.a};renderPracticeQuestion();const nextButton=document.querySelector('#nextPractice');nextButton.textContent=practiceAnswers.every(a=>a!==null)?'Finish & review':'Next unanswered question →';document.querySelector('#practiceStatus').textContent=(correct?'Answer saved — correct! ':'Answer saved — review the explanation. ')+'Use “Next unanswered question” to continue.'};
+ b.onclick=()=>{if(practiceAnswers[practiceIndex]!==null)return;practiceAnswers[practiceIndex]={choice:j,correct:j===q.a};renderPracticeQuestion();const nextButton=document.querySelector('#nextPractice');nextButton.textContent=practiceAnswers.every(a=>a!==null)?'Finish & review':'Next unanswered question →';document.querySelector('#practiceStatus').textContent=(j===q.a?'Answer saved — correct! ':'Answer saved — review the explanation. ')+'Use “Next unanswered question” to continue.'};
  card.append(b)});
  if(saved){feedback.textContent=(saved.correct?'Correct! ':'Not quite. ')+q.e+' Answer: '+String.fromCharCode(65+q.a)+'.';}
  else{feedback.textContent='Choose an answer. Your result and explanation will appear immediately.';}
