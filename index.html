@@ -12,7 +12,7 @@
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.detail-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}.detail-card h3{margin-top:0}.detail-card li{margin:7px 0;color:var(--muted)}.example{background:#0b1427;border-left:3px solid var(--cyan);padding:13px;border-radius:8px;margin-top:12px}.planner-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.planner-list label{display:flex;gap:10px;align-items:flex-start;background:#0b1427;padding:12px;border-radius:10px;color:var(--muted)}.planner-list input{margin-top:5px;accent-color:#68e1fd}.progress-track{height:10px;background:#0b1427;border-radius:20px;overflow:hidden;margin:12px 0}.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet));transition:width .2s}
 @media(max-width:650px){.detail-grid,.planner-list{grid-template-columns:1fr}}
 
-/* Interactive science lab additions */
+section[hidden]{display:none!important}\n\n/* Interactive science lab additions */
 .lab-panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;margin:18px 0}.lab-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lab-controls label{display:block;color:var(--muted);font-size:.9rem}.lab-controls input,.lab-controls select{width:100%;margin-top:5px}.lab-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.lab-stat{background:#0b1427;border:1px solid var(--line);border-radius:11px;padding:12px}.lab-stat b{display:block;color:var(--cyan);font-size:1.2rem}.lab-canvas{display:block;width:100%;height:auto;min-height:230px;background:#0b1427;border:1px solid var(--line);border-radius:12px;margin-top:14px}.lab-note{color:var(--muted);font-size:.92rem}.reaction-equation{font-size:1.35rem;font-weight:800;text-align:center;padding:16px;background:#0b1427;border-radius:12px;margin:14px 0;color:var(--cyan)}.reaction-result{padding:14px;border:1px solid var(--line);border-radius:12px;margin-top:12px;background:#0b1427}
 @media(max-width:700px){.lab-controls{grid-template-columns:1fr 1fr}.lab-readouts{grid-template-columns:1fr 1fr}}@media(max-width:450px){.lab-controls{grid-template-columns:1fr}}
 </style></head>
@@ -145,7 +145,24 @@ function renderSubject(){
  data.chapters.forEach(([name,desc],i)=>{const card=document.createElement('button');card.className='card';card.style.cssText='text-align:left;color:inherit;cursor:pointer';card.innerHTML='<span class="pill">CHAPTER '+(i+1)+'</span><h3>'+name+'</h3><p>'+desc.slice(0,105)+'…</p>';card.onclick=()=>{const note=data.notes[i];lesson.innerHTML='';const tag=document.createElement('span');tag.className='pill';tag.textContent=activeSubject.toUpperCase()+' • CHAPTER '+(i+1);const h=document.createElement('h3');h.textContent=name;const p=document.createElement('p');p.textContent=note.summary;const fh=document.createElement('h3');fh.textContent='Key formulas / points';const ul=document.createElement('ul');note.formulas.forEach(formula=>{const li=document.createElement('li');li.textContent=formula;ul.append(li)});lesson.append(tag,h,p,fh,ul);lesson.scrollIntoView({behavior:'smooth',block:'nearest'})};cg.append(card)});
  document.querySelector('#chapterSearch').oninput=e=>{const q=e.target.value.toLowerCase();[...cg.children].forEach(card=>card.style.display=card.textContent.toLowerCase().includes(q)?'':'none')};
 }
-document.querySelectorAll('.subject-choice').forEach(b=>b.onclick=()=>{activeSubject=b.dataset.subject;renderSubject()});renderSubject();
+function updateSubjectVisualLab(){
+ const labBySubject={Mathematics:'lab',Physics:'projectile',Chemistry:'reaction-machine'};
+ const activeLab=labBySubject[activeSubject];
+ Object.entries(labBySubject).forEach(([subject,id])=>{
+  const section=document.getElementById(id);
+  if(section)section.hidden=id!==activeLab;
+ });
+ const labLink=document.querySelector('header .links a[href="#lab"]');
+ if(labLink)labLink.textContent='Visual Lab';
+}
+document.querySelectorAll('.subject-choice').forEach(b=>b.onclick=()=>{
+ activeSubject=b.dataset.subject;
+ renderSubject();
+ updateSubjectVisualLab();
+ document.getElementById('lab').scrollIntoView({behavior:'smooth',block:'start'});
+});
+renderSubject();
+updateSubjectVisualLab();
 const scatter=document.querySelector('#scatterGraph'),sctx=scatter.getContext('2d');
 function plotPoints(){
  const parse=id=>document.querySelector(id).value.split(',').map(v=>v.trim()).filter(v=>v!=='').map(Number);
