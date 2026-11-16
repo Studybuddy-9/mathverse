@@ -19,12 +19,12 @@ section[hidden]{display:none!important}
 @media(max-width:700px){.lab-controls{grid-template-columns:1fr 1fr}.lab-readouts{grid-template-columns:1fr 1fr}}@media(max-width:450px){.lab-controls{grid-template-columns:1fr}}
 .tab-panel[hidden]{display:none!important}.links{flex-wrap:nowrap;overflow-x:auto;max-width:78vw;scrollbar-width:thin;padding:4px 0}.links a{white-space:nowrap;padding:8px 11px;border:1px solid transparent;border-radius:10px}.links a[aria-selected="true"]{color:var(--cyan);background:var(--panel2);border-color:var(--line)}@media(max-width:760px){.links{max-width:72vw;gap:5px}.links a{font-size:.78rem;padding:7px 8px}}.revision-card{box-shadow:0 14px 40px #0002}.revision-actions button{min-width:120px}
 /* Give the interactive coordinate graph a full-width, presentation-sized workspace. */
-#lab .tools{display:block;width:100%}
-#lab .tool{width:100%;max-width:none;padding:clamp(18px,2.5vw,32px)}
+#lab .tools{display:block;width:100%;max-width:none}
+#lab .tool{width:100%;max-width:none;padding:clamp(20px,3vw,38px)}
 #lab .example{width:100%;max-width:none}
-#scatterGraph{display:block;width:100%;height:auto;min-height:680px;max-height:none;aspect-ratio:9/5;image-rendering:auto}
-@media(max-width:900px){#scatterGraph{min-height:500px}}
-@media(max-width:650px){#scatterGraph{min-height:360px;aspect-ratio:4/3}#lab .tool{padding:14px}}
+#scatterGraph{display:block;width:100%;height:clamp(680px,82vh,1100px);min-height:680px;max-height:none;aspect-ratio:3/2;image-rendering:auto;border-radius:16px}
+@media(max-width:900px){#scatterGraph{height:650px;min-height:560px}}
+@media(max-width:650px){#scatterGraph{height:520px;min-height:460px;aspect-ratio:4/3}#lab .tool{padding:14px}}
 </style></head>
 <body>
 <header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a></div></nav></header>
@@ -61,7 +61,7 @@ section[hidden]{display:none!important}
 <div class="detail-card"><h3>4. Statistics of a class</h3><p class="muted">Use anonymous, non-sensitive sample data to demonstrate tables, averages and charts.</p></div>
 </div>
 <div class="example"><b>How to present a maths project</b><p>Aim → concept → method or model → calculations and observations → conclusion → learning outcomes → references.</p></div>
-</section><section id="lab" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">VISUAL LEARNING</div><h2>Interactive X–Y graph</h2></div></div><div class="tools"><div class="tool"><h3>Auto-scaling X–Y graph</h3><p class="muted">Plot up to 100 coordinate pairs. The axes, scale and labels adjust automatically to your data.</p><div class="example"><b>Enter your coordinates</b><p class="muted">Enter the same number of comma-separated X and Y values. Example: X = 1,2,3 and Y = 2,4,6.</p><label for="xValues">X values</label><br><input id="xValues" value="1,2,3,4,5" style="width:100%;margin:6px 0"><label for="yValues">Y values</label><br><input id="yValues" value="2,4,3,5,7" style="width:100%;margin:6px 0"><button class="btn" id="plotPoints">Plot coordinates</button><p id="pointMessage" class="muted" aria-live="polite"></p><canvas id="scatterGraph" width="1800" height="1000" aria-label="Large interactive X–Y coordinate graph"></canvas></div></div></div></section>
+</section><section id="lab" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">VISUAL LEARNING</div><h2>Interactive X–Y graph</h2></div></div><div class="tools"><div class="tool"><h3>Auto-scaling X–Y graph</h3><p class="muted">Plot up to 100 coordinate pairs on a large graph with all four quadrants always visible. The scale adjusts automatically and the origin stays in the centre.</p><div class="example"><b>Enter your coordinates</b><p class="muted">Enter the same number of comma-separated X and Y values. Example: X = 1,2,3 and Y = 2,4,6.</p><label for="xValues">X values</label><br><input id="xValues" value="1,2,3,4,5" style="width:100%;margin:6px 0"><label for="yValues">Y values</label><br><input id="yValues" value="2,4,3,5,7" style="width:100%;margin:6px 0"><button class="btn" id="plotPoints">Plot coordinates</button><p id="pointMessage" class="muted" aria-live="polite"></p><canvas id="scatterGraph" width="1800" height="1200" aria-label="Large interactive X–Y coordinate graph showing all four quadrants"></canvas></div></div></div></section>
 
 
 
@@ -256,29 +256,47 @@ renderSubject();
 updateSubjectVisualLab();
 const scatter=document.querySelector('#scatterGraph'),sctx=scatter.getContext('2d');
 function plotPoints(){
- // Keep the plotting surface wide and crisp for easier reading.
- if(scatter.width!==1800||scatter.height!==1000){scatter.width=1800;scatter.height=1000}
+ // Large, centred coordinate plane: all four quadrants remain visible for every data set.
+ if(scatter.width!==1800||scatter.height!==1200){scatter.width=1800;scatter.height=1200}
  const parse=id=>document.querySelector(id).value.split(',').map(v=>v.trim()).filter(v=>v!=='').map(Number);
  const xs=parse('#xValues'),ys=parse('#yValues'),msg=document.querySelector('#pointMessage'),w=scatter.width,h=scatter.height;
  if(!xs.length||xs.length!==ys.length||xs.some(v=>!Number.isFinite(v))||ys.some(v=>!Number.isFinite(v))){msg.textContent='Please enter matching X and Y lists containing only valid finite numbers.';sctx.clearRect(0,0,w,h);return}
  if(xs.length>100){msg.textContent='Please enter no more than 100 coordinate pairs.';return}
- // Normalize first so even very large finite values cannot overflow while calculating the graph scale.
  const scale=Math.max(1,...xs.map(Math.abs),...ys.map(Math.abs));
  const nx=xs.map(v=>v/scale),ny=ys.map(v=>v/scale);
- let minX=Math.min(...nx),maxX=Math.max(...nx),minY=Math.min(...ny),maxY=Math.max(...ny);
- if(minX===maxX){minX-=.5;maxX+=.5}if(minY===maxY){minY-=.5;maxY+=.5}
- const padX=(maxX-minX)*.12,padY=(maxY-minY)*.12;minX-=padX;maxX+=padX;minY-=padY;maxY+=padY;
- const left=64,right=w-18,top=18,bottom=h-42;
+ const extentX=Math.max(1,...nx.map(Math.abs))*1.12,extentY=Math.max(1,...ny.map(Math.abs))*1.12;
+ const minX=-extentX,maxX=extentX,minY=-extentY,maxY=extentY;
+ const left=130,right=w-55,top=65,bottom=h-105;
  const X=v=>left+(v-minX)/(maxX-minX)*(right-left),Y=v=>bottom-(v-minY)/(maxY-minY)*(bottom-top);
  const fmt=v=>{const actual=v*scale;return Number.isFinite(actual)?Number(actual.toPrecision(4)).toString():v.toPrecision(3)+' × '+scale.toExponential(2)};
- sctx.clearRect(0,0,w,h);sctx.fillStyle='#0b1427';sctx.fillRect(0,0,w,h);sctx.font='18px system-ui';sctx.lineWidth=1.5;
- for(let i=0;i<=5;i++){const t=i/5,x=left+t*(right-left),v=minX+t*(maxX-minX);sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(x,top);sctx.lineTo(x,bottom);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='center';sctx.fillText(fmt(v),x,h-20)}
- for(let i=0;i<=5;i++){const t=i/5,y=bottom-t*(bottom-top),v=minY+t*(maxY-minY);sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(left,y);sctx.lineTo(right,y);sctx.stroke();sctx.fillStyle='#a8b5cf';sctx.textAlign='right';sctx.fillText(fmt(v),left-8,y+4)}
- if(minY<=0&&maxY>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(left,Y(0));sctx.lineTo(right,Y(0));sctx.stroke()}
- if(minX<=0&&maxX>=0){sctx.strokeStyle='#7183a8';sctx.lineWidth=2;sctx.beginPath();sctx.moveTo(X(0),top);sctx.lineTo(X(0),bottom);sctx.stroke()}
- sctx.strokeStyle='#a99bff';sctx.lineWidth=2;sctx.beginPath();nx.forEach((x,i)=>{if(i===0)sctx.moveTo(X(x),Y(ny[i]));else sctx.lineTo(X(x),Y(ny[i]))});sctx.stroke();
- nx.forEach((x,i)=>{sctx.fillStyle='#68e1fd';sctx.beginPath();sctx.arc(X(x),Y(ny[i]),7,0,Math.PI*2);sctx.fill()});
- msg.textContent=xs.length+' coordinate pair(s) plotted successfully. Automatic scaling is enabled.';
+ sctx.clearRect(0,0,w,h);sctx.fillStyle='#0b1427';sctx.fillRect(0,0,w,h);
+ sctx.font='22px system-ui';sctx.lineWidth=1.5;
+ for(let i=0;i<=10;i++){
+  const t=i/10,x=left+t*(right-left),v=minX+t*(maxX-minX);
+  sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(x,top);sctx.lineTo(x,bottom);sctx.stroke();
+  sctx.fillStyle='#a8b5cf';sctx.textAlign='center';sctx.fillText(fmt(v),x,h-55);
+ }
+ for(let i=0;i<=10;i++){
+  const t=i/10,y=bottom-t*(bottom-top),v=minY+t*(maxY-minY);
+  sctx.strokeStyle='#263653';sctx.beginPath();sctx.moveTo(left,y);sctx.lineTo(right,y);sctx.stroke();
+  sctx.fillStyle='#a8b5cf';sctx.textAlign='right';sctx.fillText(fmt(v),left-16,y+7);
+ }
+ const originX=X(0),originY=Y(0);
+ sctx.strokeStyle='#f4f7ff';sctx.lineWidth=4;
+ sctx.beginPath();sctx.moveTo(left,originY);sctx.lineTo(right,originY);sctx.moveTo(originX,top);sctx.lineTo(originX,bottom);sctx.stroke();
+ sctx.fillStyle='#f4f7ff';sctx.font='bold 25px system-ui';
+ sctx.textAlign='left';sctx.fillText('Y',originX+14,top+18);
+ sctx.textAlign='right';sctx.fillText('X',right-8,originY-18);
+ sctx.font='bold 24px system-ui';sctx.fillStyle='#7183a8';
+ sctx.textAlign='left';sctx.fillText('II',left+24,top+38);
+ sctx.textAlign='right';sctx.fillText('I',right-24,top+38);
+ sctx.textAlign='left';sctx.fillText('III',left+24,bottom-22);
+ sctx.textAlign='right';sctx.fillText('IV',right-24,bottom-22);
+ sctx.fillStyle='#f4f7ff';sctx.textAlign='right';sctx.font='20px system-ui';sctx.fillText('0',originX-12,originY+26);
+ sctx.strokeStyle='#a99bff';sctx.lineWidth=4;sctx.beginPath();
+ nx.forEach((x,i)=>{if(i===0)sctx.moveTo(X(x),Y(ny[i]));else sctx.lineTo(X(x),Y(ny[i]))});sctx.stroke();
+ nx.forEach((x,i)=>{sctx.fillStyle='#68e1fd';sctx.beginPath();sctx.arc(X(x),Y(ny[i]),10,0,Math.PI*2);sctx.fill();sctx.strokeStyle='#0b1427';sctx.lineWidth=3;sctx.stroke()});
+ msg.textContent=xs.length+' coordinate pair(s) plotted successfully. All four quadrants are visible; the origin is centred.';
 }
 document.querySelector('#plotPoints').onclick=plotPoints;plotPoints();
 
