@@ -447,38 +447,46 @@ function refreshPracticeChapters(){
 document.querySelector('#practiceSubject').addEventListener('change',refreshPracticeChapters);
 refreshPracticeChapters();
 function startPractice(){
- const s=document.querySelector('#practiceSubject').value,ch=document.querySelector('#practiceChapter').value,level=document.querySelector('#practiceLevel').value,requested=Math.max(1,Math.min(100,Number(document.querySelector('#practiceCount').value)||10)),area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
- const subjectQuestions=Array.isArray(questionBank[s])?questionBank[s]:[];
- const unique=list=>list.filter((q,i,arr)=>arr.findIndex(item=>item.q.trim().toLowerCase()===q.q.trim().toLowerCase())===i);
+ const subjectSelect=document.querySelector('#practiceSubject'),chapterSelect=document.querySelector('#practiceChapter'),levelSelect=document.querySelector('#practiceLevel'),countInput=document.querySelector('#practiceCount');
+ const area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
+ if(!subjectSelect||!chapterSelect||!levelSelect||!countInput||!area||!status||!nav||!review){if(status)status.textContent='Practice could not start because a required control is missing. Refresh the page and try again.';return}
+ const rawCount=countInput.value.trim(),parsedCount=rawCount===''?NaN:Number(rawCount);
+ if(!Number.isFinite(parsedCount)||!Number.isInteger(parsedCount)||parsedCount<1){status.textContent='Enter a whole number from 1 to 100 in Questions per round.';countInput.focus();return}
+ const requested=Math.max(1,Math.min(100,parsedCount));
+ countInput.value=String(requested);
+ const subject=subjectSelect.value,chapter=chapterSelect.value,level=levelSelect.value;
+ const subjectQuestions=Array.isArray(questionBank[subject])?questionBank[subject]:[];
+ const unique=list=>{const seen=new Set();return list.filter(q=>{const key=String(q.q||'').trim().toLowerCase();if(!key||seen.has(key))return false;seen.add(key);return true;})};
  const shuffle=list=>{const copy=list.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;};
- let primary=[],extras=[],poolNote='';
- if(ch!=='All'){
-  primary=unique(subjectQuestions.filter(q=>q.c===ch&&(level==='All'||q.l===level)));
-  // Include other difficulty levels from the chosen chapter before using another chapter.
-  if(primary.length<requested&&level!=='All'){
-   const otherLevels=unique(subjectQuestions.filter(q=>q.c===ch&&q.l!==level));
-   primary=unique(primary.concat(shuffle(otherLevels)));
-  }
-  if(primary.length<requested){
-   extras=unique(subjectQuestions.filter(q=>q.c!==ch&&(level==='All'||q.l===level)));
-  }
-  if(primary.length+extras.length<requested&&level!=='All'){
-   extras=unique(extras.concat(shuffle(subjectQuestions.filter(q=>q.c!==ch&&q.l!==level))));
-  }
-  if(extras.length)poolNote=' This chapter currently has '+primary.length+' question(s); '+Math.min(extras.length,Math.max(0,requested-primary.length))+' additional question(s) from other chapters in '+s+' are included to reach your requested total. Each card shows its chapter.';
+ const matchingLevel=q=>level==='All'||q.l===level;
+ let groups=[];
+ if(chapter==='All'){
+  groups=[subjectQuestions.filter(matchingLevel),subjectQuestions.filter(q=>!matchingLevel(q))];
  }else{
-  primary=unique(subjectQuestions.filter(q=>level==='All'||q.l===level));
-  if(primary.length<requested&&level!=='All'){
-   extras=unique(subjectQuestions.filter(q=>q.l!==level));
-   if(extras.length)poolNote=' Extra difficulty levels are included to reach your requested total.';
-  }
+  groups=[
+   subjectQuestions.filter(q=>q.c===chapter&&matchingLevel(q)),
+   subjectQuestions.filter(q=>q.c===chapter&&!matchingLevel(q)),
+   subjectQuestions.filter(q=>q.c!==chapter&&matchingLevel(q)),
+   subjectQuestions.filter(q=>q.c!==chapter&&!matchingLevel(q))
+  ];
  }
- let pool=shuffle(primary).concat(shuffle(extras));
- pool=unique(pool);
- if(!pool.length){status.textContent='There are no questions loaded for '+s+' yet. Please choose another subject.';area.innerHTML='';nav.style.display='none';return}
- practiceRound=pool.slice(0,requested);practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;practiceRoundNote=poolNote+(practiceRound.length<requested?' Only '+practiceRound.length+' unique questions are currently available for these settings.':'');review.innerHTML='';nav.style.display='block';
- document.querySelector('#practiceCount').value=requested;
- status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+(level==='All'?'all difficulty levels':level+' level')+(practiceRound.length<requested?' • The question bank currently contains only '+pool.length+' unique questions for this selection.':'')+poolNote;
+ let pool=[];
+ groups.forEach(group=>{pool=unique(pool.concat(shuffle(unique(group))))});
+ practiceRound=pool.slice(0,requested);
+ practiceAnswers=practiceRound.map(()=>null);
+ practiceIndex=0;
+ practiceFinished=false;
+ const selectedChapterCount=chapter==='All'?subjectQuestions.length:unique(subjectQuestions.filter(q=>q.c===chapter)).length;
+ let notes=[];
+ if(practiceRound.length<requested)notes.push('The selected subject currently has only '+practiceRound.length+' unique question(s) in its question bank, so the round cannot reach '+requested+' without repeating questions.');
+ else if(chapter!=='All'&&practiceRound.some(q=>q.c!==chapter))notes.push('The selected chapter has '+selectedChapterCount+' unique question(s); questions from other chapters in '+subject+' were added to reach '+requested+'. Each question shows its chapter.');
+ else if(chapter!=='All'&&practiceRound.some(q=>q.l!==level)&&level!=='All')notes.push('Other difficulty levels were included to reach your requested total.');
+ if(level!=='All'&&practiceRound.some(q=>q.l!==level))notes.push('Some questions use other difficulty levels because the selected level did not have enough unique questions.');
+ practiceRoundNote=notes.length?' '+notes.join(' '):'';
+ review.innerHTML='';
+ nav.style.display=practiceRound.length?'block':'none';
+ if(!practiceRound.length){area.innerHTML='';status.textContent='No questions are available for '+subject+'.';return}
+ status.textContent='Requested: '+requested+' • Showing: '+practiceRound.length+' • '+subject+' • '+(chapter==='All'?'all chapters':chapter)+' • '+(level==='All'?'all difficulty levels':level+' level')+practiceRoundNote;
  renderPracticeQuestion();
 }
 function renderPracticeQuestion(){
