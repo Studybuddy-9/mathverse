@@ -15,7 +15,7 @@
 section[hidden]{display:none!important}\n\n/* Interactive science lab additions */
 .lab-panel{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:22px;margin:18px 0}.lab-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.lab-controls label{display:block;color:var(--muted);font-size:.9rem}.lab-controls input,.lab-controls select{width:100%;margin-top:5px}.lab-readouts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}.lab-stat{background:#0b1427;border:1px solid var(--line);border-radius:11px;padding:12px}.lab-stat b{display:block;color:var(--cyan);font-size:1.2rem}.lab-canvas{display:block;width:100%;height:auto;min-height:230px;background:#0b1427;border:1px solid var(--line);border-radius:12px;margin-top:14px}.lab-note{color:var(--muted);font-size:.92rem}.reaction-equation{font-size:1.35rem;font-weight:800;text-align:center;padding:16px;background:#0b1427;border-radius:12px;margin:14px 0;color:var(--cyan)}.reaction-result{padding:14px;border:1px solid var(--line);border-radius:12px;margin-top:12px;background:#0b1427}
 @media(max-width:700px){.lab-controls{grid-template-columns:1fr 1fr}.lab-readouts{grid-template-columns:1fr 1fr}}@media(max-width:450px){.lab-controls{grid-template-columns:1fr}}
-.tab-panel[hidden]{display:none!important}.links{flex-wrap:nowrap;overflow-x:auto;max-width:78vw;scrollbar-width:thin;padding:4px 0}.links a{white-space:nowrap;padding:8px 11px;border:1px solid transparent;border-radius:10px}.links a[aria-selected="true"]{color:var(--cyan);background:var(--panel2);border-color:var(--line)}@media(max-width:760px){.links{max-width:72vw;gap:5px}.links a{font-size:.78rem;padding:7px 8px}}.revision-card{box-shadow:0 14px 40px #0002}.revision-actions button{min-width:120px}</style></head>
+.tab-panel[hidden]{display:none!important}.links{flex-wrap:nowrap;overflow-x:auto;max-width:78vw;scrollbar-width:thin;padding:4px 0}.links a{white-space:nowrap;padding:8px 11px;border:1px solid transparent;border-radius:10px}.links a[aria-selected="true"]{color:var(--cyan);background:var(--panel2);border-color:var(--line)}@media(max-width:760px){.links{max-width:72vw;gap:5px}.links a{font-size:.78rem;padding:7px 8px}}.revision-card{box-shadow:0 14px 40px #0002}.revision-actions button{min-width:120px}\n#scatterGraph{display:block;width:100%;height:auto;min-height:420px;max-height:650px;aspect-ratio:11/6;image-rendering:auto}\n@media(max-width:650px){#scatterGraph{min-height:300px}}\n</style></head>
 <body>
 <header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a></div></nav></header>
 <main class="wrap">
@@ -51,7 +51,7 @@ section[hidden]{display:none!important}\n\n/* Interactive science lab additions 
 <div class="detail-card"><h3>4. Statistics of a class</h3><p class="muted">Use anonymous, non-sensitive sample data to demonstrate tables, averages and charts.</p></div>
 </div>
 <div class="example"><b>How to present a maths project</b><p>Aim → concept → method or model → calculations and observations → conclusion → learning outcomes → references.</p></div>
-</section><section id="lab" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">VISUAL LEARNING</div><h2>Interactive X–Y graph</h2></div></div><div class="tools"><div class="tool"><h3>Auto-scaling X–Y graph</h3><p class="muted">Plot up to 100 coordinate pairs. The axes, scale and labels adjust automatically to your data.</p><div class="example"><b>Enter your coordinates</b><p class="muted">Enter the same number of comma-separated X and Y values. Example: X = 1,2,3 and Y = 2,4,6.</p><label for="xValues">X values</label><br><input id="xValues" value="1,2,3,4,5" style="width:100%;margin:6px 0"><label for="yValues">Y values</label><br><input id="yValues" value="2,4,3,5,7" style="width:100%;margin:6px 0"><button class="btn" id="plotPoints">Plot coordinates</button><p id="pointMessage" class="muted" aria-live="polite"></p><canvas id="scatterGraph" width="700" height="300"></canvas></div></div></div></section>
+</section><section id="lab" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">VISUAL LEARNING</div><h2>Interactive X–Y graph</h2></div></div><div class="tools"><div class="tool"><h3>Auto-scaling X–Y graph</h3><p class="muted">Plot up to 100 coordinate pairs. The axes, scale and labels adjust automatically to your data.</p><div class="example"><b>Enter your coordinates</b><p class="muted">Enter the same number of comma-separated X and Y values. Example: X = 1,2,3 and Y = 2,4,6.</p><label for="xValues">X values</label><br><input id="xValues" value="1,2,3,4,5" style="width:100%;margin:6px 0"><label for="yValues">Y values</label><br><input id="yValues" value="2,4,3,5,7" style="width:100%;margin:6px 0"><button class="btn" id="plotPoints">Plot coordinates</button><p id="pointMessage" class="muted" aria-live="polite"></p><canvas id="scatterGraph" width="1100" height="600"></canvas></div></div></div></section>
 
 
 
@@ -202,7 +202,7 @@ document.querySelectorAll('.subject-choice').forEach(b=>b.onclick=()=>{
 renderSubject();
 updateSubjectVisualLab();
 const scatter=document.querySelector('#scatterGraph'),sctx=scatter.getContext('2d');
-function plotPoints(){
+function plotPoints(){\n // Keep the plotting surface wide and crisp for easier reading.\n if(scatter.width!==1100||scatter.height!==600){scatter.width=1100;scatter.height=600}
  const parse=id=>document.querySelector(id).value.split(',').map(v=>v.trim()).filter(v=>v!=='').map(Number);
  const xs=parse('#xValues'),ys=parse('#yValues'),msg=document.querySelector('#pointMessage'),w=scatter.width,h=scatter.height;
  if(!xs.length||xs.length!==ys.length||xs.some(v=>!Number.isFinite(v))||ys.some(v=>!Number.isFinite(v))){msg.textContent='Please enter matching X and Y lists containing only valid finite numbers.';sctx.clearRect(0,0,w,h);return}
@@ -348,16 +348,16 @@ const questionBank={
  {c:'Hydrocarbons',l:'Medium',q:'The molecular formula of ethene is:',o:['C₂H₂','C₂H₄','C₂H₆','CH₄'],a:1,e:'Ethene is an alkene with formula C₂H₄.'},
  {c:'Hydrocarbons',l:'Hard',q:'Addition of H₂ to ethene in the presence of a suitable catalyst produces:',o:['Ethane','Ethyne','Methane','Ethanol'],a:0,e:'Hydrogenation adds hydrogen across the double bond to form ethane.'}
  ]};
-let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false;
+let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false;\nlet practiceAnswerToken=0;
 function refreshPracticeChapters(){const s=document.querySelector('#practiceSubject').value,sel=document.querySelector('#practiceChapter');sel.innerHTML='<option value="All">All chapters</option>';subjectData[s].chapters.forEach(([n])=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o)})}
 document.querySelector('#practiceSubject').onchange=refreshPracticeChapters;refreshPracticeChapters();
 function startPractice(){
  const s=document.querySelector('#practiceSubject').value,ch=document.querySelector('#practiceChapter').value,level=document.querySelector('#practiceLevel').value,requested=Math.max(1,Math.min(100,Number(document.querySelector('#practiceCount').value)||1)),area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
- let pool=questionBank[s].filter(q=>(ch==='All'||q.c===ch)&&q.l===level);
+ let pool=questionBank[s].filter(q=>(ch==='All'||q.c===ch)&&q.l===level);\n // Remove duplicate question text before shuffling so a round never repeats the same prompt.\n pool=pool.filter((q,i,arr)=>arr.findIndex(item=>item.q.trim().toLowerCase()===q.q.trim().toLowerCase())===i);
  if(!pool.length){status.textContent='No '+level.toLowerCase()+' questions are available for this chapter yet. Choose another chapter or difficulty.';area.innerHTML='';nav.style.display='none';return}
  // Shuffle without bias, then use as many matching questions as the student requested.
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
- practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
+ practiceAnswerToken++;practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
  document.querySelector('#practiceCount').value=requested;
  status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+level+' level'+(practiceRound.length<requested?' • '+(requested-practiceRound.length)+' fewer than requested because the current question bank has only '+pool.length+' matching questions.':'');
  renderPracticeQuestion();
@@ -370,7 +370,7 @@ function renderPracticeQuestion(){
  const feedback=document.createElement('p');feedback.className='feedback';feedback.setAttribute('aria-live','polite');
  q.o.forEach((option,j)=>{const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
  if(saved){b.disabled=true;if(j===q.a)b.classList.add('correct');else if(j===saved.choice)b.classList.add('wrong')}
- b.onclick=()=>{if(practiceAnswers[practiceIndex]!==null)return;const correct=j===q.a;practiceAnswers[practiceIndex]={choice:j,correct};renderPracticeQuestion()};
+ b.onclick=()=>{if(practiceAnswers[practiceIndex]!==null)return;const answeredAt=practiceIndex;const correct=j===q.a;practiceAnswers[answeredAt]={choice:j,correct};renderPracticeQuestion();\n // Show feedback briefly, then automatically move to a fresh, unanswered question.\n const answerToken=++practiceAnswerToken;setTimeout(()=>{if(answerToken!==practiceAnswerToken||practiceIndex!==answeredAt)return;const next=practiceAnswers.findIndex(a=>a===null);if(next!==-1){practiceIndex=next;renderPracticeQuestion()}else finishPractice()},1400)};
  card.append(b)});
  if(saved){feedback.textContent=(saved.correct?'Correct! ':'Not quite. ')+q.e+' Answer: '+String.fromCharCode(65+q.a)+'.';}
  else{feedback.textContent='Choose an answer. Your result and explanation will appear immediately.';}
