@@ -472,16 +472,24 @@ function startPractice(){
  }
  let pool=[];
  groups.forEach(group=>{pool=unique(pool.concat(shuffle(unique(group))))});
+ // Use every unique question first, then cycle through shuffled questions
+ // again when the selected bank contains fewer questions than requested.
  practiceRound=pool.slice(0,requested);
+ let repeatNumber=1;
+ while(practiceRound.length<requested&&pool.length){
+  const cycle=shuffle(pool);
+  repeatNumber++;
+  cycle.forEach(q=>{if(practiceRound.length<requested)practiceRound.push({...q,_roundRepeat:repeatNumber});});
+ }
  practiceAnswers=practiceRound.map(()=>null);
  practiceIndex=0;
  practiceFinished=false;
  const selectedChapterCount=chapter==='All'?subjectQuestions.length:unique(subjectQuestions.filter(q=>q.c===chapter)).length;
  let notes=[];
- if(practiceRound.length<requested)notes.push('The selected subject currently has only '+practiceRound.length+' unique question(s) in its question bank, so the round cannot reach '+requested+' without repeating questions.');
- else if(chapter!=='All'&&practiceRound.some(q=>q.c!==chapter))notes.push('The selected chapter has '+selectedChapterCount+' unique question(s); questions from other chapters in '+subject+' were added to reach '+requested+'. Each question shows its chapter.');
- else if(chapter!=='All'&&practiceRound.some(q=>q.l!==level)&&level!=='All')notes.push('Other difficulty levels were included to reach your requested total.');
- if(level!=='All'&&practiceRound.some(q=>q.l!==level))notes.push('Some questions use other difficulty levels because the selected level did not have enough unique questions.');
+ const repeatedCount=practiceRound.filter(q=>q._roundRepeat).length;
+ if(repeatedCount)notes.push('There are '+pool.length+' unique question(s) in this question bank selection. All unique questions appear first; '+repeatedCount+' slot(s) repeat with shuffled options so your round still contains exactly '+requested+' questions.');
+ if(chapter!=='All'&&practiceRound.some(q=>q.c!==chapter))notes.push('The selected chapter has '+selectedChapterCount+' unique question(s); questions from other chapters in '+subject+' were added to reach '+requested+'. Each question shows its chapter.');
+ if(level!=='All'&&practiceRound.some(q=>q.l!==level))notes.push('Other difficulty levels were included because the selected level did not have enough unique questions.');
  practiceRoundNote=notes.length?' '+notes.join(' '):'';
  review.innerHTML='';
  nav.style.display=practiceRound.length?'block':'none';
@@ -497,7 +505,7 @@ function renderPracticeQuestion(){
   const saved=practiceAnswers[index];
   const card=document.createElement('div');card.className='practice-question';card.id='practice-card-'+index;
   if(index===practiceIndex)card.style.borderColor='var(--accent, #68e1fd)';
-  const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(index+1)+' OF '+practiceRound.length+' • '+q.c;card.append(top);
+  const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(index+1)+' OF '+practiceRound.length+' • '+q.c+(q._roundRepeat?' • REPEAT':'');card.append(top);
   const h=document.createElement('h3');h.textContent=q.q;card.append(h);
   q.o.forEach((option,j)=>{
    const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
