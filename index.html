@@ -432,7 +432,7 @@ function startPractice(){
  if(!pool.length){status.textContent='No '+level.toLowerCase()+' questions are available for this chapter yet. Choose another chapter or difficulty.';area.innerHTML='';nav.style.display='none';return}
  // Shuffle without bias, then use as many matching questions as the student requested.
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
- practiceAnswerToken++;practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
+ practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
  document.querySelector('#practiceCount').value=requested;
  status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+level+' level'+(practiceRound.length<requested?' • '+(requested-practiceRound.length)+' fewer than requested because the current question bank has only '+pool.length+' matching questions.':'');
  renderPracticeQuestion();
