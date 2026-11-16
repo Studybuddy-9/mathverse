@@ -33,7 +33,7 @@ section[hidden]{display:none!important}
 <div class="heading"><div><div class="tag">YOUR LEARNING</div><h2>Student Profile</h2><p class="muted">Your name and today's learning progress.</p></div></div>
 <div class="tool" style="margin-bottom:16px"><h3>Student name</h3><div style="max-width:520px"><label for="studentName">Student name</label><input id="studentName" maxlength="40" autocomplete="name" placeholder="Enter your name" style="width:100%;margin:8px 0"><button class="btn" id="saveStudent" type="button">Save name</button><p id="profileMessage" class="muted" aria-live="polite"></p></div></div>
 <div class="tool"><h3 id="dailyHeading">Today's progress</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><div class="card"><span class="pill">STUDY TIME</span><h2 id="todayMinutes">0 min</h2></div><div class="card"><span class="pill">QUESTIONS</span><h2 id="todayQuestions">0</h2></div><div class="card"><span class="pill">DAY SCORE</span><h2 id="todayPoints">0</h2></div><div class="card"><span class="pill">STREAK</span><h2 id="studyStreak">0 days</h2></div></div><p class="muted">Your progress is based on study sessions saved on this device. Score = 1 point per 10 study minutes + 2 points per question solved.</p></div>
-</section><section id="subjects" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">YOUR LEARNING PATH</div><h2>2. Choose your subject</h2></div><p class="muted">Pick Mathematics, Physics or Chemistry to explore chapters, key ideas and formulas.</p></div><div class="grid subject-picker"><button class="card subject-choice active" data-subject="Mathematics"><span class="pill">SUBJECT 01</span><h3>∑ Mathematics</h3><p>Class 11 chapters, concepts and important formulas.</p></button><button class="card subject-choice" data-subject="Physics"><span class="pill">SUBJECT 02</span><h3>⚛ Physics</h3><p>Understand motion, laws, energy, matter and waves.</p></button><button class="card subject-choice" data-subject="Chemistry"><span class="pill">SUBJECT 03</span><h3>⚗ Chemistry</h3><p>Explore atoms, bonding, states of matter and reactions.</p></button></div><div class="heading" style="margin-top:28px"><div><div class="tag" id="subjectTag">MATHEMATICS</div><h2 id="subjectHeading">Class 11 Mathematics chapters</h2></div></div><input id="chapterSearch" type="search" placeholder="Search chapters…"><div class="grid" id="chaptersGrid"></div><div id="lesson" class="card muted" style="margin-top:16px">Choose a chapter to see its overview and key formulas.</div><p class="muted" style="margin-top:14px">Note: Follow the chapter order and exact topic coverage prescribed by your school and current CBSE syllabus.</p></section><section id="practice" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">LEARN BY DOING</div><h2>3. Question practice</h2></div><p class="muted">Choose a subject, chapter and difficulty. Check answers with explanations.</p></div><div class="tool"><div class="detail-grid"><div><label for="practiceSubject">Subject</label><br><select id="practiceSubject" style="width:100%;margin:8px 0"><option>Mathematics</option><option>Physics</option><option>Chemistry</option></select></div><div><label for="practiceChapter">Chapter</label><br><select id="practiceChapter" style="width:100%;margin:8px 0"></select></div><div><label for="practiceLevel">Difficulty level</label><br><select id="practiceLevel" style="width:100%;margin:8px 0"><option value="All" selected>All levels (recommended)</option><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></div><div><label for="practiceCount">Questions per round</label><br><input id="practiceCount" type="number" min="1" max="100" value="10" style="width:100%;margin:8px 0" aria-describedby="practiceCountHelp"><small id="practiceCountHelp" class="muted">Enter how many questions you want (up to 100). The round uses available questions matching your filters.</small></div></div><button class="btn" id="startPractice">Start practice</button><div id="practiceStatus" class="muted" aria-live="polite" style="margin-top:12px">Select your options and start a round.</div><div id="practiceQuestions" style="margin-top:16px"></div>
+</section><section id="subjects" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">YOUR LEARNING PATH</div><h2>2. Choose your subject</h2></div><p class="muted">Pick Mathematics, Physics or Chemistry to explore chapters, key ideas and formulas.</p></div><div class="grid subject-picker"><button class="card subject-choice active" data-subject="Mathematics"><span class="pill">SUBJECT 01</span><h3>∑ Mathematics</h3><p>Class 11 chapters, concepts and important formulas.</p></button><button class="card subject-choice" data-subject="Physics"><span class="pill">SUBJECT 02</span><h3>⚛ Physics</h3><p>Understand motion, laws, energy, matter and waves.</p></button><button class="card subject-choice" data-subject="Chemistry"><span class="pill">SUBJECT 03</span><h3>⚗ Chemistry</h3><p>Explore atoms, bonding, states of matter and reactions.</p></button></div><div class="heading" style="margin-top:28px"><div><div class="tag" id="subjectTag">MATHEMATICS</div><h2 id="subjectHeading">Class 11 Mathematics chapters</h2></div></div><input id="chapterSearch" type="search" placeholder="Search chapters…"><div class="grid" id="chaptersGrid"></div><div id="lesson" class="card muted" style="margin-top:16px">Choose a chapter to see its overview and key formulas.</div><p class="muted" style="margin-top:14px">Note: Follow the chapter order and exact topic coverage prescribed by your school and current CBSE syllabus.</p></section><section id="practice" class="tab-panel" data-tab-panel><div class="heading"><div><div class="tag">LEARN BY DOING</div><h2>3. Question practice</h2></div><p class="muted">Choose a subject, chapter and difficulty. All questions in your round appear together, with instant feedback and explanations.</p></div><div class="tool"><div class="detail-grid"><div><label for="practiceSubject">Subject</label><br><select id="practiceSubject" style="width:100%;margin:8px 0"><option>Mathematics</option><option>Physics</option><option>Chemistry</option></select></div><div><label for="practiceChapter">Chapter</label><br><select id="practiceChapter" style="width:100%;margin:8px 0"></select></div><div><label for="practiceLevel">Difficulty level</label><br><select id="practiceLevel" style="width:100%;margin:8px 0"><option value="All" selected>All levels (recommended)</option><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select></div><div><label for="practiceCount">Questions per round</label><br><input id="practiceCount" type="number" min="1" max="100" value="10" style="width:100%;margin:8px 0" aria-describedby="practiceCountHelp"><small id="practiceCountHelp" class="muted">Enter how many questions you want (up to 100). All available questions matching your filters will appear together (up to 100).</small></div></div><button class="btn" id="startPractice">Start practice</button><div id="practiceStatus" class="muted" aria-live="polite" style="margin-top:12px">Select your options and start a round.</div><div id="practiceQuestions" style="margin-top:16px"></div>
 <div id="practiceNavigation" style="display:none;margin-top:14px">
  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
   <button class="btn secondary" id="previousPractice" type="button">← Previous</button>
@@ -467,29 +467,41 @@ function startPractice(){
  renderPracticeQuestion();
 }
 function renderPracticeQuestion(){
- const area=document.querySelector('#practiceQuestions'),q=practiceRound[practiceIndex],saved=practiceAnswers[practiceIndex];area.innerHTML='';
- const card=document.createElement('div');card.className='practice-question';
- const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(practiceIndex+1)+' OF '+practiceRound.length;card.append(top);
- const h=document.createElement('h3');h.textContent=q.q;card.append(h);
- const feedback=document.createElement('p');feedback.className='feedback';feedback.setAttribute('aria-live','polite');
- q.o.forEach((option,j)=>{const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
- if(saved){b.disabled=true;if(j===q.a)b.classList.add('correct');else if(j===saved.choice)b.classList.add('wrong')}
- b.onclick=()=>{if(practiceAnswers[practiceIndex]!==null)return;practiceAnswers[practiceIndex]={choice:j,correct:j===q.a};renderPracticeQuestion();const nextButton=document.querySelector('#nextPractice');nextButton.textContent=practiceAnswers.every(a=>a!==null)?'Finish & review':'Next unanswered question →';document.querySelector('#practiceStatus').textContent=(j===q.a?'Answer saved — correct! ':'Answer saved — review the explanation. ')+'Use “Next unanswered question” to continue.'};
- card.append(b)});
- if(saved){feedback.textContent=(saved.correct?'Correct! ':'Not quite. ')+q.e+' Answer: '+String.fromCharCode(65+q.a)+'.';}
- else{feedback.textContent='Choose an answer. Your result and explanation will appear immediately.';}
- card.append(feedback);area.append(card);
- document.querySelector('#previousPractice').disabled=practiceIndex===0;
- document.querySelector('#nextPractice').textContent=practiceIndex===practiceRound.length-1?'Finish & review':'Next question →';
+ const area=document.querySelector('#practiceQuestions');
+ if(!area||!practiceRound.length){if(area)area.innerHTML='<p class="muted">No questions are available for this round.</p>';return}
+ area.innerHTML='';
+ practiceRound.forEach((q,index)=>{
+  const saved=practiceAnswers[index];
+  const card=document.createElement('div');card.className='practice-question';card.id='practice-card-'+index;
+  if(index===practiceIndex)card.style.borderColor='var(--accent, #68e1fd)';
+  const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(index+1)+' OF '+practiceRound.length;card.append(top);
+  const h=document.createElement('h3');h.textContent=q.q;card.append(h);
+  q.o.forEach((option,j)=>{
+   const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
+   if(saved){b.disabled=true;if(j===q.a)b.classList.add('correct');else if(j===saved.choice)b.classList.add('wrong')}
+   b.addEventListener('click',()=>{
+    if(practiceAnswers[index]!==null)return;
+    practiceAnswers[index]={choice:j,correct:j===q.a};practiceIndex=index;
+    renderPracticeQuestion();
+   });
+   card.append(b);
+  });
+  const feedback=document.createElement('p');feedback.className='feedback';feedback.setAttribute('aria-live','polite');
+  feedback.textContent=saved?(saved.correct?'Correct! ':'Not quite. ')+q.e+' Answer: '+String.fromCharCode(65+q.a)+'.':'Choose an answer. Feedback and explanation will appear here.';
+  card.append(feedback);area.append(card);
+ });
+ const previous=document.querySelector('#previousPractice'),next=document.querySelector('#nextPractice');
+ if(previous)previous.disabled=practiceIndex===0;
+ if(next)next.textContent=practiceAnswers.every(a=>a!==null)?'Finish & review':'Go to next unanswered →';
  updatePracticeStatus();renderPracticeMap();
 }
 function updatePracticeStatus(){
  const answered=practiceAnswers.filter(a=>a!==null).length,correct=practiceAnswers.filter(a=>a&&a.correct).length,wrong=answered-correct,left=practiceRound.length-answered;
- document.querySelector('#practiceStatus').textContent='Question '+(practiceIndex+1)+'/'+practiceRound.length+' • Answered '+answered+' • Correct '+correct+' • Incorrect '+wrong+' • Left '+left;
+ document.querySelector('#practiceStatus').textContent='Showing all '+practiceRound.length+' questions • Viewed Q'+(practiceIndex+1)+' • Answered '+answered+' • Correct '+correct+' • Incorrect '+wrong+' • Left '+left;
 }
 function renderPracticeMap(){
  const map=document.querySelector('#practiceQuestionMap');map.innerHTML='';
- practiceRound.forEach((q,i)=>{const b=document.createElement('button');b.type='button';b.textContent=String(i+1);b.title='Question '+(i+1)+(practiceAnswers[i]===null?' — not answered':practiceAnswers[i].correct?' — correct':' — incorrect');b.className='btn secondary';b.style.minWidth='40px';b.style.padding='8px';b.style.border= i===practiceIndex?'2px solid var(--accent, currentColor)':'';if(practiceAnswers[i]!==null){b.style.background=practiceAnswers[i].correct?'#176b45':'#873b3b';b.style.color='#fff'}b.onclick=()=>{practiceIndex=i;renderPracticeQuestion()};map.append(b)});
+ practiceRound.forEach((q,i)=>{const b=document.createElement('button');b.type='button';b.textContent=String(i+1);b.title='Question '+(i+1)+(practiceAnswers[i]===null?' — not answered':practiceAnswers[i].correct?' — correct':' — incorrect');b.className='btn secondary';b.style.minWidth='40px';b.style.padding='8px';b.style.border= i===practiceIndex?'2px solid var(--accent, currentColor)':'';if(practiceAnswers[i]!==null){b.style.background=practiceAnswers[i].correct?'#176b45':'#873b3b';b.style.color='#fff'}b.onclick=()=>{practiceIndex=i;renderPracticeQuestion();const target=document.querySelector('#practice-card-'+i);if(target)target.scrollIntoView({behavior:'smooth',block:'center'})};map.append(b)});
 }
 function finishPractice(){
  const answered=practiceAnswers.filter(a=>a!==null).length,correct=practiceAnswers.filter(a=>a&&a.correct).length,wrong=answered-correct,left=practiceRound.length-answered;
@@ -514,7 +526,7 @@ if(startPracticeButton){
   }
  });
 }
-document.querySelector('#nextPractice').onclick=()=>{if(!practiceRound.length)return;const next=practiceAnswers.findIndex((answer,index)=>index>practiceIndex&&answer===null);const firstUnanswered=next!==-1?next:practiceAnswers.findIndex(answer=>answer===null);if(firstUnanswered!==-1){practiceIndex=firstUnanswered;renderPracticeQuestion()}else finishPractice()};
+document.querySelector('#nextPractice').onclick=()=>{if(!practiceRound.length)return;const next=practiceAnswers.findIndex((answer,index)=>index>practiceIndex&&answer===null);const firstUnanswered=next!==-1?next:practiceAnswers.findIndex(answer=>answer===null);if(firstUnanswered!==-1){practiceIndex=firstUnanswered;renderPracticeQuestion();const target=document.querySelector('#practice-card-'+firstUnanswered);if(target)target.scrollIntoView({behavior:'smooth',block:'center'})}else finishPractice()};
 document.querySelector('#previousPractice').onclick=()=>{if(practiceIndex>0){practiceIndex--;renderPracticeQuestion()}};
 document.querySelector('#finishPractice').onclick=finishPractice;
 
