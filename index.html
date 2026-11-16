@@ -238,19 +238,14 @@ function renderSubject(){
 }
 function updateSubjectVisualLab(){
  const labBySubject={Mathematics:'lab',Physics:'projectile',Chemistry:'reaction-machine'};
- const activeLab=labBySubject[activeSubject];
- Object.entries(labBySubject).forEach(([subject,id])=>{
-  const section=document.getElementById(id);
-  if(section)section.hidden=id!==activeLab;
- });
- const labLink=document.querySelector('header .links a[href="#lab"]');
- if(labLink)labLink.textContent='Visual Lab';
+ return labBySubject[activeSubject]||'lab';
 }
 document.querySelectorAll('.subject-choice').forEach(b=>b.onclick=()=>{
  activeSubject=b.dataset.subject;
  renderSubject();
- updateSubjectVisualLab();
- document.getElementById('lab').scrollIntoView({behavior:'smooth',block:'start'});
+ const labId=updateSubjectVisualLab();
+ const labTab=document.querySelector('header .links a[href="#'+labId+'"]');
+ if(labTab)labTab.click();
 });
 renderSubject();
 updateSubjectVisualLab();
