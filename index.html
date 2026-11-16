@@ -88,6 +88,54 @@ section[hidden]{display:none!important}\n\n/* Interactive science lab additions 
 </section>
 </main><footer><div class="wrap"><b class="brand">∑ <span>StudyBuddy</span></b><p>Understand the idea. Then solve the problem.</p><small>Independent learning project for Class 11 students. Follow your prescribed textbooks and current school syllabus for exam preparation.</small></div></footer>
 <script>
+/* StudyBuddy independent tab controller: each feature opens in its own tab panel. */
+(()=> {
+  const header=document.querySelector('header[data-studybuddy-tabs="v1"]');
+  const main=document.querySelector('main');
+  if(!header||!main)return;
+  const tabs=[...header.querySelectorAll('[role="tab"][href^="#"]')];
+  const panels=[...main.querySelectorAll('[data-tab-panel]')];
+  const byId=new Map(panels.map(panel=>[panel.id,panel]));
+  if(!tabs.length||!panels.length)return;
+  function activate(id,updateHash=true){
+    const panel=byId.get(id);
+    if(!panel)return false;
+    panels.forEach(item=>{item.hidden=item!==panel;});
+    tabs.forEach(tab=>{
+      const active=tab.getAttribute('href')==='#'+id;
+      tab.setAttribute('aria-selected',active?'true':'false');
+      tab.setAttribute('tabindex',active?'0':'-1');
+    });
+    if(updateHash && location.hash!=='#'+id) history.replaceState(null,'','#'+id);
+    return true;
+  }
+  header.addEventListener('click',event=>{
+    const tab=event.target.closest('[role="tab"][href^="#"]');
+    if(!tab)return;
+    const id=tab.getAttribute('href').slice(1);
+    if(activate(id)){event.preventDefault();window.scrollTo({top:0,behavior:'smooth'});}
+  });
+  main.addEventListener('click',event=>{
+    const link=event.target.closest('a[href^="#"]');
+    if(!link)return;
+    const id=link.getAttribute('href').slice(1);
+    if(byId.has(id)){activate(id);window.scrollTo({top:0,behavior:'smooth'});}
+  });
+  tabs.forEach((tab,index)=>tab.addEventListener('keydown',event=>{
+    if(!['ArrowRight','ArrowLeft','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    let next=index;
+    if(event.key==='ArrowRight')next=(index+1)%tabs.length;
+    if(event.key==='ArrowLeft')next=(index-1+tabs.length)%tabs.length;
+    if(event.key==='Home')next=0;
+    if(event.key==='End')next=tabs.length-1;
+    tabs[next].focus();
+    activate(tabs[next].getAttribute('href').slice(1));
+  }));
+  activate(location.hash.slice(1)||'home',false) || activate('home',false);
+})();
+</script>
+<script>
 const chapters=[
 ["Sets","Set representations; empty, finite, infinite and equal sets; subsets and intervals; universal set; Venn diagrams; union, intersection, difference and complement."],
 ["Relations and Functions","Ordered pairs and Cartesian products; relations, domain, codomain and range; functions and their graphs; constant, identity, polynomial, rational, modulus, signum, exponential, logarithmic and greatest-integer functions; operations on functions."],
