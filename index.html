@@ -260,19 +260,12 @@ function renderSubject(){
  data.chapters.forEach(([name,desc],i)=>{const card=document.createElement('button');card.className='card';card.style.cssText='text-align:left;color:inherit;cursor:pointer';card.innerHTML='<span class="pill">CHAPTER '+(i+1)+'</span><h3>'+name+'</h3><p>'+desc.slice(0,105)+'…</p>';card.onclick=()=>{const note=data.notes[i];lesson.innerHTML='';const tag=document.createElement('span');tag.className='pill';tag.textContent=activeSubject.toUpperCase()+' • CHAPTER '+(i+1);const h=document.createElement('h3');h.textContent=name;const p=document.createElement('p');p.textContent=note.summary;const fh=document.createElement('h3');fh.textContent='Key formulas / points';const ul=document.createElement('ul');note.formulas.forEach(formula=>{const li=document.createElement('li');li.textContent=formula;ul.append(li)});lesson.append(tag,h,p,fh,ul);lesson.scrollIntoView({behavior:'smooth',block:'nearest'})};cg.append(card)});
  document.querySelector('#chapterSearch').oninput=e=>{const q=e.target.value.toLowerCase();[...cg.children].forEach(card=>card.style.display=card.textContent.toLowerCase().includes(q)?'':'none')};
 }
-function updateSubjectVisualLab(){
- const labBySubject={Mathematics:'lab',Physics:'projectile',Chemistry:'reaction-machine'};
- return labBySubject[activeSubject]||'lab';
-}
-document.querySelectorAll('.subject-choice').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('.subject-choice').forEach(b=>b.addEventListener('click',()=>{
  activeSubject=b.dataset.subject;
  renderSubject();
- const labId=updateSubjectVisualLab();
- const labTab=document.querySelector('header .links a[href="#'+labId+'"]');
- if(labTab)labTab.click();
-});
+ // Keep the student in the Subjects tab; selecting a subject only updates its chapters.
+}));
 renderSubject();
-updateSubjectVisualLab();
 const scatter=document.querySelector('#scatterGraph'),sctx=scatter.getContext('2d');
 function plotPoints(){
  // Large, centred coordinate plane: all four quadrants remain visible for every data set.
@@ -441,19 +434,33 @@ const questionBank={
  {c:'Hydrocarbons',l:'Hard',q:'Addition of H₂ to ethene in the presence of a suitable catalyst produces:',o:['Ethane','Ethyne','Methane','Ethanol'],a:0,e:'Hydrogenation adds hydrogen across the double bond to form ethane.'}
  ]};
 let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false;
-function refreshPracticeChapters(){const s=document.querySelector('#practiceSubject').value,sel=document.querySelector('#practiceChapter');sel.innerHTML='<option value="All">All chapters</option>';subjectData[s].chapters.forEach(([n])=>{const o=document.createElement('option');o.value=n;o.textContent=n;sel.append(o)})}
-document.querySelector('#practiceSubject').onchange=refreshPracticeChapters;refreshPracticeChapters();
+function refreshPracticeChapters(){
+ const subjectSelect=document.querySelector('#practiceSubject'),sel=document.querySelector('#practiceChapter');
+ if(!subjectSelect||!sel)return;
+ const s=subjectSelect.value,data=subjectData[s];
+ sel.innerHTML='<option value="All">All chapters</option>';
+ if(data&&Array.isArray(data.chapters))data.chapters.forEach(([name])=>{const o=document.createElement('option');o.value=name;o.textContent=name;sel.append(o)});
+}
+document.querySelector('#practiceSubject').addEventListener('change',refreshPracticeChapters);
+refreshPracticeChapters();
 function startPractice(){
  const s=document.querySelector('#practiceSubject').value,ch=document.querySelector('#practiceChapter').value,level=document.querySelector('#practiceLevel').value,requested=Math.max(1,Math.min(100,Number(document.querySelector('#practiceCount').value)||1)),area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
- let pool=questionBank[s].filter(q=>(ch==='All'||q.c===ch)&&q.l===level);
+ const subjectQuestions=Array.isArray(questionBank[s])?questionBank[s]:[];
+ let pool=subjectQuestions.filter(q=>(ch==='All'||q.c===ch)&&q.l===level);
+ let poolNote='';
+ // If a particular chapter/difficulty combination has no entries yet, still provide
+ // useful questions rather than leaving the practice area blank.
+ if(!pool.length&&ch!=='All'){pool=subjectQuestions.filter(q=>q.c===ch);if(pool.length)poolNote=' Showing all difficulty levels for this chapter.';}
+ if(!pool.length){pool=subjectQuestions.filter(q=>q.l===level);if(pool.length)poolNote=' No questions were tagged for that chapter, so questions from the selected subject are shown.';}
+ if(!pool.length){pool=subjectQuestions.slice();if(pool.length)poolNote=' Showing available questions from this subject.';}
  // Remove duplicate question text before shuffling so a round never repeats the same prompt.
  pool=pool.filter((q,i,arr)=>arr.findIndex(item=>item.q.trim().toLowerCase()===q.q.trim().toLowerCase())===i);
- if(!pool.length){status.textContent='No '+level.toLowerCase()+' questions are available for this chapter yet. Choose another chapter or difficulty.';area.innerHTML='';nav.style.display='none';return}
+ if(!pool.length){status.textContent='There are no questions loaded for '+s+' yet. Please choose another subject.';area.innerHTML='';nav.style.display='none';return}
  // Shuffle without bias, then use as many matching questions as the student requested.
  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
  practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
  document.querySelector('#practiceCount').value=requested;
- status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+level+' level'+(practiceRound.length<requested?' • '+(requested-practiceRound.length)+' fewer than requested because the current question bank has only '+pool.length+' matching questions.':'');
+ status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+level+' level'+(practiceRound.length<requested?' • '+(requested-practiceRound.length)+' fewer than requested because the current question bank has only '+pool.length+' matching questions.':'')+poolNote;
  renderPracticeQuestion();
 }
 function renderPracticeQuestion(){
@@ -490,7 +497,20 @@ function finishPractice(){
  const note=document.createElement('p');note.className='muted';note.textContent=left?'You can still return to unanswered questions using the navigator above.':'You have answered every question in this round.';box.append(note);review.append(box);
  document.querySelector('#practiceStatus').textContent='Round summary • '+correct+' correct • '+wrong+' incorrect • '+left+' unanswered out of '+practiceRound.length;
 }
-document.querySelector('#startPractice').onclick=startPractice;
+const startPracticeButton=document.querySelector('#startPractice');
+if(startPracticeButton){
+ startPracticeButton.type='button';
+ startPracticeButton.addEventListener('click',()=>{
+  try{startPractice();}
+  catch(error){
+   const status=document.querySelector('#practiceStatus'),area=document.querySelector('#practiceQuestions'),nav=document.querySelector('#practiceNavigation');
+   if(status)status.textContent='Practice could not start because of a page error. Please change the subject and try again.';
+   if(area)area.innerHTML='';
+   if(nav)nav.style.display='none';
+   console.error('StudyBuddy practice error:',error);
+  }
+ });
+}
 document.querySelector('#nextPractice').onclick=()=>{if(!practiceRound.length)return;const next=practiceAnswers.findIndex((answer,index)=>index>practiceIndex&&answer===null);const firstUnanswered=next!==-1?next:practiceAnswers.findIndex(answer=>answer===null);if(firstUnanswered!==-1){practiceIndex=firstUnanswered;renderPracticeQuestion()}else finishPractice()};
 document.querySelector('#previousPractice').onclick=()=>{if(practiceIndex>0){practiceIndex--;renderPracticeQuestion()}};
 document.querySelector('#finishPractice').onclick=finishPractice;
