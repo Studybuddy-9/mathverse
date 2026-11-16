@@ -447,23 +447,38 @@ function refreshPracticeChapters(){
 document.querySelector('#practiceSubject').addEventListener('change',refreshPracticeChapters);
 refreshPracticeChapters();
 function startPractice(){
- const s=document.querySelector('#practiceSubject').value,ch=document.querySelector('#practiceChapter').value,level=document.querySelector('#practiceLevel').value,requested=Math.max(1,Math.min(100,Number(document.querySelector('#practiceCount').value)||1)),area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
+ const s=document.querySelector('#practiceSubject').value,ch=document.querySelector('#practiceChapter').value,level=document.querySelector('#practiceLevel').value,requested=Math.max(1,Math.min(100,Number(document.querySelector('#practiceCount').value)||10)),area=document.querySelector('#practiceQuestions'),status=document.querySelector('#practiceStatus'),nav=document.querySelector('#practiceNavigation'),review=document.querySelector('#practiceReview');
  const subjectQuestions=Array.isArray(questionBank[s])?questionBank[s]:[];
- let pool=subjectQuestions.filter(q=>(ch==='All'||q.c===ch)&&(level==='All'||q.l===level));
- let poolNote='';
- // If a particular chapter/difficulty combination has no entries yet, still provide
- // useful questions rather than leaving the practice area blank.
- if(!pool.length&&ch!=='All'){pool=subjectQuestions.filter(q=>q.c===ch);if(pool.length)poolNote=' Showing all difficulty levels for this chapter.';}
- if(!pool.length){pool=subjectQuestions.filter(q=>q.l===level);if(pool.length)poolNote=' No questions were tagged for that chapter, so questions from the selected subject are shown.';}
- if(!pool.length){pool=subjectQuestions.slice();if(pool.length)poolNote=' Showing available questions from this subject.';}
- // Remove duplicate question text before shuffling so a round never repeats the same prompt.
- pool=pool.filter((q,i,arr)=>arr.findIndex(item=>item.q.trim().toLowerCase()===q.q.trim().toLowerCase())===i);
+ const unique=list=>list.filter((q,i,arr)=>arr.findIndex(item=>item.q.trim().toLowerCase()===q.q.trim().toLowerCase())===i);
+ const shuffle=list=>{const copy=list.slice();for(let i=copy.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[copy[i],copy[j]]=[copy[j],copy[i]];}return copy;};
+ let primary=[],extras=[],poolNote='';
+ if(ch!=='All'){
+  primary=unique(subjectQuestions.filter(q=>q.c===ch&&(level==='All'||q.l===level)));
+  // Include other difficulty levels from the chosen chapter before using another chapter.
+  if(primary.length<requested&&level!=='All'){
+   const otherLevels=unique(subjectQuestions.filter(q=>q.c===ch&&q.l!==level));
+   primary=unique(primary.concat(shuffle(otherLevels)));
+  }
+  if(primary.length<requested){
+   extras=unique(subjectQuestions.filter(q=>q.c!==ch&&(level==='All'||q.l===level)));
+  }
+  if(primary.length+extras.length<requested&&level!=='All'){
+   extras=unique(extras.concat(shuffle(subjectQuestions.filter(q=>q.c!==ch&&q.l!==level))));
+  }
+  if(extras.length)poolNote=' This chapter currently has '+primary.length+' question(s); '+Math.min(extras.length,Math.max(0,requested-primary.length))+' additional question(s) from other chapters in '+s+' are included to reach your requested total. Each card shows its chapter.';
+ }else{
+  primary=unique(subjectQuestions.filter(q=>level==='All'||q.l===level));
+  if(primary.length<requested&&level!=='All'){
+   extras=unique(subjectQuestions.filter(q=>q.l!==level));
+   if(extras.length)poolNote=' Extra difficulty levels are included to reach your requested total.';
+  }
+ }
+ let pool=shuffle(primary).concat(shuffle(extras));
+ pool=unique(pool);
  if(!pool.length){status.textContent='There are no questions loaded for '+s+' yet. Please choose another subject.';area.innerHTML='';nav.style.display='none';return}
- // Shuffle without bias, then use as many matching questions as the student requested.
- for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
- practiceRound=pool.slice(0,Math.min(requested,pool.length));practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
+ practiceRound=pool.slice(0,requested);practiceAnswers=practiceRound.map(()=>null);practiceIndex=0;practiceFinished=false;review.innerHTML='';nav.style.display='block';
  document.querySelector('#practiceCount').value=requested;
- status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+(level==='All'?'all difficulty levels':level+' level')+(practiceRound.length<requested?' • '+(requested-practiceRound.length)+' fewer than requested because the current question bank has only '+pool.length+' matching questions.':'')+poolNote;
+ status.textContent='Preparing '+practiceRound.length+' question(s) • '+s+' • '+(level==='All'?'all difficulty levels':level+' level')+(practiceRound.length<requested?' • The question bank currently contains only '+pool.length+' unique questions for this selection.':'')+poolNote;
  renderPracticeQuestion();
 }
 function renderPracticeQuestion(){
@@ -474,7 +489,7 @@ function renderPracticeQuestion(){
   const saved=practiceAnswers[index];
   const card=document.createElement('div');card.className='practice-question';card.id='practice-card-'+index;
   if(index===practiceIndex)card.style.borderColor='var(--accent, #68e1fd)';
-  const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(index+1)+' OF '+practiceRound.length;card.append(top);
+  const top=document.createElement('div');top.className='pill';top.textContent='QUESTION '+(index+1)+' OF '+practiceRound.length+' • '+q.c;card.append(top);
   const h=document.createElement('h3');h.textContent=q.q;card.append(h);
   q.o.forEach((option,j)=>{
    const b=document.createElement('button');b.type='button';b.className='practice-option';b.textContent=String.fromCharCode(65+j)+'. '+option;
