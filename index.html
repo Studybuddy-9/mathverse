@@ -93,9 +93,8 @@ section[hidden]{display:none!important}
 <section id="revision" class="tab-panel" data-tab-panel>
  <div class="heading"><div><div class="tag">REVISE SMARTER</div><h2>Revision Centre</h2><p class="muted">Use active recall: try to answer first, then reveal the explanation. Mark cards as mastered when you can answer confidently.</p></div></div>
  <div class="tool" data-revision-deck>
-  <div class="detail-grid">
-   <div><label for="revisionSubject">Choose subject</label><br><select id="revisionSubject" style="width:100%;margin:8px 0"><option value="All">All subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option></select></div>
-   <div><label for="revisionSearch">Search cards</label><br><input id="revisionSearch" type="search" placeholder="Search a topic or formula" style="width:100%;margin:8px 0"></div>
+  <div style="max-width:420px">
+   <label for="revisionSubject">Choose subject</label><br><select id="revisionSubject" style="width:100%;margin:8px 0"><option value="All">All subjects</option><option>Mathematics</option><option>Physics</option><option>Chemistry</option></select>
   </div>
   <div class="progress-track"><div id="revisionProgressFill" class="progress-fill"></div></div>
   <p id="revisionProgressText" class="muted" aria-live="polite">Loading revision cards…</p>
@@ -115,7 +114,7 @@ section[hidden]{display:none!important}
    <button class="btn secondary" id="nextRevision">Next →</button>
   </div>
   <p class="muted" id="revisionCounter" style="text-align:center;margin-top:10px">Card 1 of 1</p>
-  <p class="muted" style="font-size:.88rem;margin-top:14px">Your mastered-card list is saved only in this browser. Use the subject filter to revise one subject at a time. Check your current school syllabus for exact chapter coverage.</p>
+  <p class="muted" style="font-size:.88rem;margin-top:14px">Your mastered-card list is saved only in this browser. Choose a subject to revise one subject at a time. Check your current school syllabus for exact chapter coverage.</p>
  </div>
 </section>
 </main><footer><div class="wrap"><b class="brand">∑ <span>StudyBuddy</span></b><p>Understand the idea. Then solve the problem.</p><small>Independent learning project for Class 11 students. Follow your prescribed textbooks and current school syllabus for exam preparation.</small></div></footer>
@@ -779,13 +778,13 @@ document.addEventListener('DOMContentLoaded',()=>{
    ['Chemistry','Redox Reactions','What is oxidation in terms of electrons?','Loss of electrons. Reduction is gain of electrons.']
   ];
   const $=id=>document.getElementById(id);
-  const subject=$('revisionSubject'),search=$('revisionSearch'),prompt=$('revisionPrompt'),answer=$('revisionAnswer'),tag=$('revisionSubjectTag'),hint=$('revisionHint'),counter=$('revisionCounter'),progress=$('revisionProgressText'),fill=$('revisionProgressFill');
-  if(!subject||!search||!prompt||!answer)return;
+  const subject=$('revisionSubject'),prompt=$('revisionPrompt'),answer=$('revisionAnswer'),tag=$('revisionSubjectTag'),hint=$('revisionHint'),counter=$('revisionCounter'),progress=$('revisionProgressText'),fill=$('revisionProgressFill');
+  if(!subject||!prompt||!answer)return;
   const storageKey='studybuddy_revision_mastered_v1';
   let mastered={};try{mastered=JSON.parse(localStorage.getItem(storageKey)||'{}')||{}}catch(e){mastered={}}
   let visible=[],index=0,revealed=false;
   const save=()=>{try{localStorage.setItem(storageKey,JSON.stringify(mastered))}catch(e){}};
-  function filtered(){const s=subject.value,q=search.value.trim().toLowerCase();return cards.filter((c,i)=>(s==='All'||c[0]===s)&&(!q||c.join(' ').toLowerCase().includes(q))).map((c)=>({c,id:c[0]+'|'+c[1]+'|'+c[2]}));}
+  function filtered(){const s=subject.value;return cards.filter(c=>s==='All'||c[0]===s).map(c=>({c,id:c[0]+'|'+c[1]+'|'+c[2]}));}
   function updateProgress(){
    const total=visible.length,done=visible.filter(x=>mastered[x.id]).length;
    progress.textContent=done+' of '+total+' visible cards mastered • '+Object.keys(mastered).filter(k=>mastered[k]).length+' mastered overall';
@@ -793,7 +792,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   function render(){
    visible=filtered();if(index>=visible.length)index=Math.max(0,visible.length-1);if(index<0)index=0;revealed=false;
-   if(!visible.length){tag.textContent='NO MATCH';prompt.textContent='No cards found';answer.hidden=true;hint.textContent='Try another search or subject.';counter.textContent='Card 0 of 0';$('revealRevision').disabled=true;$('masterRevision').disabled=true;updateProgress();return;}
+   if(!visible.length){tag.textContent='NO MATCH';prompt.textContent='No cards found';answer.hidden=true;hint.textContent='Choose another subject to continue revising.';counter.textContent='Card 0 of 0';$('revealRevision').disabled=true;$('masterRevision').disabled=true;updateProgress();return;}
    const item=visible[index],c=item.c;tag.textContent=c[0].toUpperCase()+' • '+c[1].toUpperCase();prompt.textContent=c[2];answer.textContent=c[3];answer.hidden=true;hint.textContent=mastered[item.id]?'✓ Previously marked as mastered. Reveal it to review.':'Think of your answer before revealing it.';counter.textContent='Card '+(index+1)+' of '+visible.length;$('revealRevision').disabled=false;$('masterRevision').disabled=false;$('masterRevision').textContent=mastered[item.id]?'Mastered ✓':'Mark as mastered';$('revealRevision').textContent='Reveal answer';updateProgress();
   }
   $('revealRevision').addEventListener('click',()=>{if(!visible.length)return;revealed=!revealed;answer.hidden=!revealed;hint.textContent=revealed?'Read the answer, then explain it in your own words.':'Think of your answer before revealing it.';$('revealRevision').textContent=revealed?'Hide answer':'Reveal answer';});
@@ -802,7 +801,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('previousRevision').addEventListener('click',()=>{if(visible.length){index=(index-1+visible.length)%visible.length;render();}});
   $('shuffleRevision').addEventListener('click',()=>{visible=filtered();for(let i=visible.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[visible[i],visible[j]]=[visible[j],visible[i]];}index=0;revealed=false;renderShuffled();});
   function renderShuffled(){if(!visible.length){render();return;}revealed=false;const c=visible[index].c;tag.textContent=c[0].toUpperCase()+' • '+c[1].toUpperCase();prompt.textContent=c[2];answer.textContent=c[3];answer.hidden=true;hint.textContent='Shuffled deck • think of your answer before revealing it.';counter.textContent='Card '+(index+1)+' of '+visible.length;$('revealRevision').disabled=false;$('masterRevision').disabled=false;$('masterRevision').textContent=mastered[visible[index].id]?'Mastered ✓':'Mark as mastered';$('revealRevision').textContent='Reveal answer';updateProgress();}
-  subject.addEventListener('change',()=>{index=0;render();});search.addEventListener('input',()=>{index=0;render();});render();
+  subject.addEventListener('change',()=>{index=0;render();});render();
  })();
 
 </script></body></html>
