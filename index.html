@@ -30,7 +30,7 @@ section[hidden]{display:none!important}
 .assistant-shell{background:linear-gradient(145deg,var(--panel),#10182b);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,2.5vw,24px)}
 .assistant-intro{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.assistant-mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,#55d8f4,#a99bff);color:#081222;font-size:1.5rem;font-weight:900}.assistant-intro p{margin:2px 0 0}.assistant-status{margin-left:auto;border:1px solid #42d39266;color:#79e5b2;background:#12352e;padding:5px 9px;border-radius:30px;font-size:.7rem;font-weight:900;letter-spacing:.7px}
 .assistant-notice{margin:16px 0;padding:12px 14px;border:1px solid #53678a;border-radius:11px;background:#0b1427;color:var(--muted);font-size:.9rem}.assistant-notice b{color:var(--text)}
-.assistant-controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}.assistant-controls label{display:grid;gap:6px;color:var(--muted);font-size:.9rem}.assistant-controls select{width:100%}
+.assistant-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.assistant-controls label{display:grid;gap:6px;color:var(--muted);font-size:.9rem}.assistant-controls select{width:100%;min-width:0}@media(max-width:760px){.assistant-controls{grid-template-columns:1fr}}
 .assistant-quick{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:16px 0}.assistant-quick button{border:1px solid var(--line);border-radius:20px;background:#0b1427;color:var(--text);padding:7px 11px;cursor:pointer;font-size:.84rem}.assistant-quick button:hover{border-color:var(--cyan);color:var(--cyan)}
 .assistant-chat{height:390px;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:14px;background:#0b1427;border:1px solid var(--line);border-radius:14px;scroll-behavior:smooth}
 .assistant-message{max-width:min(90%,760px);padding:12px 14px;border-radius:13px;line-height:1.55;overflow-wrap:anywhere}.assistant-message p{white-space:pre-wrap;margin:6px 0 0}.assistant-bot{align-self:flex-start;background:#1b2944;border:1px solid #344767}.assistant-user{align-self:flex-end;background:#26345a;border:1px solid #53658e}.assistant-message b{font-size:.84rem;color:var(--cyan)}
@@ -81,11 +81,12 @@ section[hidden]{display:none!important}
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
 <div class="assistant-shell">
- <div class="assistant-intro"><div class="assistant-mark">✦</div><div><b>StudyBuddy Tutor</b><p class="muted">Built-in offline study help • Class 11 Mathematics, Physics & Chemistry</p></div><span class="assistant-status">OFFLINE MODE</span></div>
- <div class="assistant-notice" role="note"><b>About this version:</b> This assistant uses built-in learning guides and examples. It does not connect to a live AI model yet, and it will tell you when a question needs a fuller explanation. No API key or private data is collected.</div>
+ <div class="assistant-intro"><div class="assistant-mark">✦</div><div><b>StudyBuddy Tutor</b><p class="muted">Complete chapter-wise Class 11 study companion • Maths, Physics & Chemistry</p></div><span class="assistant-status">OFFLINE MODE</span></div>
+ <div class="assistant-notice" role="note"><b>Class 11 chapter tutor:</b> Choose any Mathematics, Physics or Chemistry chapter to get chapter-wise explanations, revision notes, formula lists and MCQ practice from the StudyBuddy question bank. This is an offline tutor, not a live AI model; no API key or private data is collected.</div>
  <div class="assistant-controls">
   <label>Subject<select id="assistantSubject"><option>Mathematics</option><option>Physics</option><option>Chemistry</option><option>General study</option></select></label>
-  <label>Help mode<select id="assistantMode"><option value="explain">Explain a concept</option><option value="notes">Make short notes</option><option value="numerical">Guide me through a numerical</option><option value="quiz">Quiz me</option></select></label>
+  <label>Class 11 chapter<select id="assistantChapter" aria-label="Choose a Class 11 chapter"></select></label>
+  <label>Help mode<select id="assistantMode"><option value="explain">Explain a concept</option><option value="notes">Make short notes</option><option value="numerical">Guide me through a numerical</option><option value="quiz">Chapter MCQ practice</option></select></label>
  </div>
  <div class="assistant-quick"><span class="muted">Try asking:</span><button type="button" data-assistant-prompt="Explain Newton's second law with an example.">Newton's second law</button><button type="button" data-assistant-prompt="Give me short notes on mole concept.">Mole concept notes</button><button type="button" data-assistant-prompt="Quiz me on trigonometric functions.">Trigonometry quiz</button></div>
  <div id="assistantChat" class="assistant-chat" aria-live="polite" aria-label="Study assistant conversation"><div class="assistant-message assistant-bot"><b>StudyBuddy Tutor</b><p>Hi! Choose a subject and help mode, then ask me about a Class 11 topic. I can explain selected concepts, share revision notes, guide your numerical-solving steps and give you a short quiz.</p></div></div>
@@ -226,29 +227,53 @@ section[hidden]{display:none!important}
 })();
 
 
-// StudyBuddy Tutor: transparent offline learning helper (no API key or network calls).
+// StudyBuddy Tutor: chapter-aware offline Class 11 tutor.
 (()=>{
  const form=document.getElementById('assistantForm');
  const chat=document.getElementById('assistantChat');
  const question=document.getElementById('assistantQuestion');
  const subject=document.getElementById('assistantSubject');
+ const chapter=document.getElementById('assistantChapter');
  const mode=document.getElementById('assistantMode');
  const status=document.getElementById('assistantStatus');
  const clear=document.getElementById('assistantClear');
- if(!form||!chat||!question||!subject||!mode||!status||!clear)return;
+ if(!form||!chat||!question||!subject||!chapter||!mode||!status||!clear)return;
+
+ const getData=()=>window.studyBuddySubjectData&&window.studyBuddySubjectData[subject.value];
+ const getChapter=()=>{
+  const data=getData();
+  if(!data||!data.chapters.length)return null;
+  const index=Math.max(0,Math.min(Number(chapter.value)||0,data.chapters.length-1));
+  return {data,index,entry:data.chapters[index],note:data.notes[index]};
+ };
+ function refreshChapters(){
+  const data=getData();
+  chapter.innerHTML='';
+  if(!data||!data.chapters.length){
+   const opt=document.createElement('option');opt.value='';opt.textContent='Choose a subject first';chapter.append(opt);chapter.disabled=true;return;
+  }
+  chapter.disabled=false;
+  data.chapters.forEach((item,index)=>{
+   const opt=document.createElement('option');opt.value=String(index);opt.textContent=item[0];chapter.append(opt);
+  });
+  chapter.value='0';
+ }
+ subject.addEventListener('change',refreshChapters);
+ refreshChapters();
+
  const guides=[
-  {keys:['newton second','second law','f=ma'],subject:'Physics',title:'Newton’s second law',explain:'Newton’s second law says that the net force on an object equals the rate of change of its momentum. For constant mass, F = ma.\n\nF = net force (newton, N), m = mass (kg), and a = acceleration (m s⁻²).\n\nExample: A net force of 10 N on a 2 kg object gives a = F/m = 10/2 = 5 m s⁻².',notes:'• Net force causes acceleration.\n• For constant mass: F = ma.\n• SI unit of force: newton (N).\n• Acceleration is in the direction of net force.',quiz:['A 4 kg object has a net force of 12 N. Find its acceleration.','What is the SI unit of force?']},
-  {keys:['kinematic','equation of motion','motion'],subject:'Physics',title:'Equations of uniformly accelerated motion',explain:'For motion along a straight line with constant acceleration:\n\n1. v = u + at\n2. s = ut + ½at²\n3. v² = u² + 2as\n\nHere u = initial velocity, v = final velocity, a = acceleration, t = time and s = displacement. Always check units and choose an equation that contains the known quantities and the unknown.',notes:'• Use these equations only for constant acceleration.\n• v = u + at\n• s = ut + ½at²\n• v² = u² + 2as\n• SI units: m, s, m s⁻¹ and m s⁻².',quiz:['A body starts from rest and accelerates at 2 m s⁻² for 5 s. Find its final velocity.','Which equation does not contain time?']},
-  {keys:['work energy','kinetic energy','potential energy'],subject:'Physics',title:'Work and energy',explain:'Work is done when a force produces displacement. For a constant force, W = Fs cos θ. Kinetic energy is the energy of motion: K = ½mv². Near Earth’s surface, gravitational potential energy is U = mgh.\n\nThe work–energy theorem states that net work equals the change in kinetic energy: Wnet = ΔK.',notes:'• Work: W = Fs cos θ.\n• Kinetic energy: K = ½mv².\n• Gravitational potential energy: U = mgh.\n• Work–energy theorem: Wnet = ΔK.',quiz:['What is the SI unit of work?','Write the formula for kinetic energy.']},
-  {keys:['circular motion','centripetal'],subject:'Physics',title:'Uniform circular motion',explain:'In uniform circular motion, speed stays constant but velocity changes because its direction changes. The acceleration is directed towards the centre and is called centripetal acceleration.\n\na = v²/r = ω²r, where v is speed, r is radius and ω is angular speed.',notes:'• Speed may be constant while velocity changes.\n• Centripetal acceleration points towards the centre.\n• a = v²/r = ω²r.\n• SI unit of acceleration: m s⁻².',quiz:['What is the direction of centripetal acceleration?','If speed doubles while radius stays fixed, what happens to v²/r?']},
-  {keys:['mole concept','mole','avogadro'],subject:'Chemistry',title:'The mole concept',explain:'One mole contains 6.02214076 × 10²³ specified entities. This number is the Avogadro constant (NA).\n\nNumber of moles: n = given mass / molar mass.\nNumber of particles: N = n × NA.\n\nExample: 18 g of water has molar mass 18 g mol⁻¹, so n = 18/18 = 1 mol.',notes:'• 1 mol = 6.02214076 × 10²³ entities.\n• Moles: n = m/M.\n• Particles: N = nNA.\n• Molar mass is usually expressed in g mol⁻¹.',quiz:['How many moles are present in 22 g of CO₂? (M = 44 g mol⁻¹)','What is the value of the Avogadro constant?']},
-  {keys:['atomic structure','quantum number','orbitals','structure of atom'],subject:'Chemistry',title:'Structure of atom and quantum numbers',explain:'An atom contains a small, dense nucleus with protons and neutrons, with electrons described by orbitals. Four quantum numbers describe an electron:\n\n• Principal (n): shell and energy level.\n• Azimuthal (l): subshell; 0 to n−1.\n• Magnetic (mₗ): orbital orientation; −l to +l.\n• Spin (mₛ): +½ or −½.',notes:'• n = 1, 2, 3, …\n• l = 0 to n−1 (s, p, d, f correspond to 0, 1, 2, 3).\n• mₗ = −l to +l.\n• mₛ = +½ or −½.',quiz:['For n = 3, what values can l have?','How many orbitals are in a p-subshell?']},
-  {keys:['chemical bond','ionic bond','covalent bond','bonding'],subject:'Chemistry',title:'Chemical bonding',explain:'An ionic bond is the electrostatic attraction between oppositely charged ions. A covalent bond forms when atoms share electron pairs. Lewis structures show valence electrons and help track bonding and lone pairs. Molecular shape is influenced by repulsion between electron pairs around the central atom.',notes:'• Ionic bonding: attraction between oppositely charged ions.\n• Covalent bonding: sharing of electron pairs.\n• Lewis structures show valence electrons.\n• VSEPR theory relates electron-pair repulsion to molecular shape.',quiz:['What happens to electrons in a simple ionic bond?','What is shared in a covalent bond?']},
-  {keys:['chemical equilibrium','equilibrium'],subject:'Chemistry',title:'Chemical equilibrium',explain:'In a reversible reaction at dynamic equilibrium, the forward and reverse reaction rates are equal. The concentrations of reactants and products remain constant over time in a closed system, but the reactions continue at the particle level.',notes:'• Equilibrium is dynamic, not static.\n• Forward rate = reverse rate.\n• Concentrations remain constant at equilibrium.\n• The system must be closed for a stable equilibrium.',quiz:['At equilibrium, are the forward and reverse rates equal?','Do reactant and product concentrations have to be equal?']},
-  {keys:['trigonometry','trigonometric'],subject:'Mathematics',title:'Trigonometric identities',explain:'The fundamental identity is sin²θ + cos²θ = 1. Dividing by cos²θ gives 1 + tan²θ = sec²θ (where cos θ ≠ 0). Dividing by sin²θ gives 1 + cot²θ = cosec²θ (where sin θ ≠ 0). These identities help simplify expressions and solve equations.',notes:'• sin²θ + cos²θ = 1.\n• 1 + tan²θ = sec²θ.\n• 1 + cot²θ = cosec²θ.\n• Check denominator restrictions before dividing.',quiz:['If sin θ = 3/5 and θ is acute, find cos θ.','Which identity connects tan²θ and sec²θ?']},
-  {keys:['sequence','arithmetic progression','ap'],subject:'Mathematics',title:'Arithmetic progression',explain:'An arithmetic progression (AP) is a sequence in which the difference between consecutive terms is constant. If the first term is a and common difference is d, then the nth term is aₙ = a + (n−1)d. The sum of n terms is Sₙ = n/2 [2a + (n−1)d].',notes:'• Common difference: d = a₂ − a₁.\n• nth term: aₙ = a + (n−1)d.\n• Sum: Sₙ = n/2 [2a + (n−1)d].',quiz:['Find the common difference of 4, 7, 10, 13, …','Find the 10th term when a = 2 and d = 3.']},
-  {keys:['set','union','intersection'],subject:'Mathematics',title:'Sets: union and intersection',explain:'A set is a well-defined collection of distinct objects. The union A ∪ B contains elements in A or B or both. The intersection A ∩ B contains only elements common to both sets. The empty set, written ∅, has no elements.',notes:'• Union: A ∪ B (in A or B or both).\n• Intersection: A ∩ B (in both).\n• Difference: A − B (in A but not B).\n• Empty set: ∅.',quiz:['If A = {1,2,3} and B = {3,4}, find A ∩ B.','What does A ∪ B represent?']},
-  {keys:['complex number','imaginary'],subject:'Mathematics',title:'Complex numbers',explain:'A complex number is written z = a + ib, where a and b are real numbers and i² = −1. The real part is a and the imaginary part is b. The conjugate of a + ib is a − ib.',notes:'• z = a + ib.\n• i² = −1.\n• Conjugate: a − ib.\n• Modulus: |z| = √(a²+b²).',quiz:['What is i²?','Find the conjugate of 3 + 2i.']}
+  {keys:['newton second','second law','f=ma'],subject:'Physics',title:'Newton’s second law',explain:'Newton’s second law says that the net force on an object equals the rate of change of its momentum. For constant mass, F = ma.\n\nF is net force in newtons, m is mass in kg and a is acceleration in m s⁻². Example: a net force of 10 N on a 2 kg object gives a = 10/2 = 5 m s⁻².',notes:'Net force causes acceleration. For constant mass F = ma. SI unit of force is newton (N).',quiz:['A 4 kg object has a net force of 12 N. Find its acceleration.','What is the SI unit of force?']},
+  {keys:['kinematic','equation of motion','uniform acceleration'],subject:'Physics',title:'Equations of motion',explain:'For straight-line motion with constant acceleration: v = u + at; s = ut + ½at²; v² = u² + 2as. Here u is initial velocity, v final velocity, a acceleration, t time and s displacement.',notes:'Use the three equations only when acceleration is constant. Keep units consistent.',quiz:['A body starts from rest and accelerates at 2 m s⁻² for 5 s. Find final velocity.','Which equation does not contain time?']},
+  {keys:['work energy','kinetic energy','potential energy'],subject:'Physics',title:'Work, energy and power',explain:'Work by a constant force is W = Fs cosθ. Kinetic energy is K = ½mv² and near Earth gravitational potential energy is U = mgh. The work-energy theorem states that net work equals change in kinetic energy.',notes:'Work: W=Fs cosθ. Kinetic energy: ½mv². Potential energy: mgh. Power: P=W/t.',quiz:['What is the SI unit of work?','Write the formula for kinetic energy.']},
+  {keys:['circular motion','centripetal'],subject:'Physics',title:'Uniform circular motion',explain:'In uniform circular motion speed is constant but velocity changes direction. Centripetal acceleration points towards the centre: a=v²/r=ω²r.',notes:'Centripetal acceleration points inward. a=v²/r=ω²r. Angular speed ω is measured in rad s⁻¹.',quiz:['What is the direction of centripetal acceleration?','If speed doubles and radius is fixed, how does centripetal acceleration change?']},
+  {keys:['mole concept','mole','avogadro'],subject:'Chemistry',title:'The mole concept',explain:'One mole contains 6.02214076×10²³ specified entities. Number of moles n = mass/molar mass; number of particles N=nNA. Example: 18 g water is 1 mol when its molar mass is 18 g mol⁻¹.',notes:'1 mol=6.022×10²³ entities. n=m/M. N=nNA. Molar mass is expressed in g mol⁻¹.',quiz:['How many moles are in 22 g CO₂ (M=44 g mol⁻¹)?','State Avogadro constant.']},
+  {keys:['atomic structure','quantum number','orbitals','structure of atom'],subject:'Chemistry',title:'Structure of atom',explain:'An atom has a compact nucleus containing protons and neutrons. Electrons are described using orbitals and four quantum numbers: principal n, azimuthal l, magnetic ml and spin ms.',notes:'n=1,2,…; l=0 to n−1; ml=−l to +l; ms=+½ or −½. Subshell labels s,p,d,f correspond to l=0,1,2,3.',quiz:['For n=3, what values can l have?','How many orbitals are in a p-subshell?']},
+  {keys:['chemical bond','ionic bond','covalent bond','bonding'],subject:'Chemistry',title:'Chemical bonding',explain:'Ionic bonding is electrostatic attraction between oppositely charged ions. Covalent bonding involves shared electron pairs. Lewis structures show valence electrons; VSEPR theory helps predict molecular shape.',notes:'Ionic: electron transfer followed by attraction of ions. Covalent: sharing electron pairs. Learn Lewis structures, bond parameters, VSEPR and hybridisation.',quiz:['What happens to electrons in a simple ionic bond?','What is shared in a covalent bond?']},
+  {keys:['chemical equilibrium','equilibrium'],subject:'Chemistry',title:'Chemical equilibrium',explain:'At dynamic equilibrium in a reversible reaction, forward and reverse reaction rates are equal. Concentrations remain constant, but both reactions continue.',notes:'Dynamic equilibrium: forward rate = reverse rate. Learn equilibrium constants and Le Chatelier principle.',quiz:['At equilibrium, are forward and reverse rates equal?','Do reactant and product concentrations have to be equal?']},
+  {keys:['trigonometry','trigonometric'],subject:'Mathematics',title:'Trigonometric functions',explain:'Trigonometric functions connect angles with coordinates on the unit circle. Learn degree-radian conversion, signs in quadrants, standard values, graphs and identities.',notes:'sin²θ+cos²θ=1; 1+tan²θ=sec²θ; 1+cot²θ=cosec²θ. 180°=π radians.',quiz:['If sinθ=3/5 and θ is acute, find cosθ.','Which identity connects tan²θ and sec²θ?']},
+  {keys:['sequence','arithmetic progression','geometric progression'],subject:'Mathematics',title:'Sequence and series',explain:'A sequence is an ordered list and a series is its sum. In an AP the difference is constant; in a GP the ratio is constant.',notes:'AP: an=a+(n−1)d; Sn=n/2[2a+(n−1)d]. GP: an=arⁿ⁻¹; Sn=a(rⁿ−1)/(r−1), r≠1.',quiz:['Find the common difference of 4,7,10,13,…','Find the 10th AP term when a=2 and d=3.']},
+  {keys:['set','union','intersection'],subject:'Mathematics',title:'Sets',explain:'A set is a well-defined collection of distinct objects. Union A∪B contains elements in either set; intersection A∩B contains elements common to both.',notes:'Union: A∪B. Intersection: A∩B. Difference: A−B. Empty set: ∅.',quiz:['If A={1,2,3} and B={3,4}, find A∩B.','What does A∪B represent?']},
+  {keys:['complex number','imaginary'],subject:'Mathematics',title:'Complex numbers',explain:'A complex number is z=a+ib where a,b are real and i²=−1. Its conjugate is a−ib and modulus is √(a²+b²).',notes:'z=a+ib; i²=−1; conjugate a−ib; |z|=√(a²+b²).',quiz:['What is i²?','Find the conjugate of 3+2i.']}
  ];
  function addMessage(kind,label,text){
   const bubble=document.createElement('div');bubble.className='assistant-message '+(kind==='user'?'assistant-user':'assistant-bot');
@@ -258,34 +283,58 @@ section[hidden]{display:none!important}
  }
  function findGuide(text,chosen){
   const q=text.toLowerCase();
-  return guides.find(g=>(chosen==='General study'||g.subject===chosen)&&g.keys.some(k=>q.includes(k))) ||
-         guides.find(g=>g.keys.some(k=>q.includes(k)));
+  return guides.find(g=>g.subject===chosen&&g.keys.some(k=>q.includes(k)));
+ }
+ function chapterQuestions(info){
+  const bank=window.studyBuddyQuestionBank&&window.studyBuddyQuestionBank[subject.value]||[];
+  return bank.filter(item=>item.c===info.entry[0]);
+ }
+ function questionText(items,includeAnswers=true){
+  if(!items.length)return 'No MCQs have been added for this chapter yet.';
+  let out=items.map((item,i)=>{
+   const opts=(item.o||[]).map((opt,j)=>'   '+String.fromCharCode(65+j)+'. '+opt).join('\n');
+   return (i+1)+'. '+item.q+'\n'+opts;
+  }).join('\n\n');
+  if(includeAnswers){
+   out+='\n\nANSWER KEY & EXPLANATIONS\n'+items.map((item,i)=>(i+1)+'. '+String.fromCharCode(65+(Number(item.a)||0))+' — '+(item.e||'Review this concept in your textbook.')).join('\n');
+  }
+  return out;
+ }
+ function chapterOverview(info){
+  if(!info)return 'Choose Mathematics, Physics or Chemistry to load its Class 11 chapters.';
+  const title=info.entry[0],topics=info.entry[1],note=info.note||{};
+  const formulas=(note.formulas||[]).map((x,i)=>(i+1)+'. '+x).join('\n');
+  return title+'\n\nCHAPTER OVERVIEW\n'+(note.summary||'Use the topic list below as a chapter checklist.')+'\n\nTOPICS TO COVER\n'+topics+'\n\nIMPORTANT FORMULAS / RELATIONS\n'+(formulas||'Use the definitions and relations given in your prescribed textbook.')+'\n\nPractice the chapter MCQs in “Chapter MCQ practice” mode.';
  }
  function answerFor(text){
-  const chosen=subject.value,kind=mode.value,g=findGuide(text,chosen);
-  if(kind==='quiz'){
-   const pool=g?g.quiz:(chosen==='Physics'?['State Newton’s first law of motion.','Write the SI unit of acceleration.']:chosen==='Chemistry'?['Define one mole.','What is an ionic bond?']:['What is the union of two sets?','Write the nth-term formula of an AP.']);
-   return 'Quick quiz — '+(g?g.title:chosen)+'\n\n'+pool.map((q,i)=>(i+1)+'. '+q).join('\n')+'\n\nTry answering in your notebook first. This offline version does not automatically grade free-text answers.';
+  const chosen=subject.value,kind=mode.value,info=getChapter();
+  const guide=findGuide(text,chosen);
+  const items=info?chapterQuestions(info):[];
+  if(kind==='quiz')return 'CLASS 11 • '+(info?info.entry[0]:chosen)+'\n\n'+questionText(items,true)+'\n\nTry solving each question before checking the answer key. These questions are from the StudyBuddy chapter bank.';
+  if(kind==='notes')return 'REVISION NOTES\n\n'+chapterOverview(info);
+  if(kind==='numerical'){
+   const note=info&&info.note||{};
+   const formulas=(note.formulas||[]).join('\n');
+   const sample=items.find(item=>/\d/.test(item.q));
+   return 'NUMERICAL SOLVING GUIDE • '+(info?info.entry[0]:chosen)+'\n\n1. Write all given values with units.\n2. Identify the required quantity.\n3. Choose a formula that connects the known values to the unknown.\n4. Substitute values carefully and calculate step by step.\n5. Check units and whether the answer is reasonable.\n\nCHAPTER FORMULAS\n'+(formulas||'Select a chapter to load its formulas.')+'\n\nCHAPTER PRACTICE QUESTIONS\n'+questionText(items,true)+(sample?'\n\nTip: Start with the worked explanation in the answer key, then solve a similar question without looking.':'');
   }
-  if(!g)return 'I don’t have a built-in guide for that exact topic yet. Try a topic such as Newton’s laws, equations of motion, work and energy, circular motion, mole concept, atomic structure, chemical bonding, equilibrium, trigonometry, sets, complex numbers or arithmetic progression.\n\nFor a full AI-generated answer to any question, StudyBuddy will need a secure server connection to an AI model; this GitHub Pages version does not have one yet.';
-  if(kind==='notes')return g.title+' — short notes\n\n'+g.notes;
-  if(kind==='numerical')return 'Let’s approach a '+g.title+' numerical step by step.\n\n1. Write the given values with units.\n2. Identify what the question asks you to find.\n3. Select the relevant relation:\n'+g.notes+'\n4. Substitute values carefully and show each calculation.\n5. Write the final answer with the correct SI unit.\n\nSend the exact numerical and I can help identify the relevant formula; this offline helper cannot reliably solve every new numerical automatically.';
-  return g.title+'\n\n'+g.explain+'\n\nCheck your understanding: '+g.quiz[0];
+  if(guide)return guide.title+'\n\n'+guide.explain+'\n\nCHAPTER CONNECTION\n'+chapterOverview(info)+'\n\nCheck your understanding: '+guide.quiz[0];
+  return chapterOverview(info)+'\n\nYOUR QUESTION\n“'+text+'”\n\nUse the chapter topic list and formulas above to locate the relevant idea. For a more focused explanation, include the exact subtopic or paste one question from your textbook.';
  }
  form.addEventListener('submit',e=>{
   e.preventDefault();const text=question.value.trim();if(!text)return;
   addMessage('user','You • '+subject.value,text);
   addMessage('bot','StudyBuddy Tutor • '+mode.options[mode.selectedIndex].text,answerFor(text));
-  question.value='';status.textContent='Built-in offline guide used. Check your textbook for syllabus-specific wording.';
+  question.value='';status.textContent='Loaded chapter-wise notes and questions from the built-in Class 11 study bank.';
  });
  document.querySelectorAll('[data-assistant-prompt]').forEach(btn=>btn.addEventListener('click',()=>{
   question.value=btn.getAttribute('data-assistant-prompt')||'';question.focus();
  }));
  clear.addEventListener('click',()=>{
-  chat.innerHTML='';addMessage('bot','StudyBuddy Tutor','Chat cleared. Choose a subject and ask a new study question whenever you are ready.');
+  chat.innerHTML='';addMessage('bot','StudyBuddy Tutor','Chat cleared. Choose a subject and chapter to continue studying.');
   status.textContent='Conversation cleared from this page.';
  });
-})();
+})();;
 
 
 </script>
@@ -558,6 +607,8 @@ const questionBank={
  {c:'Hydrocarbons',l:'Medium',q:'The molecular formula of ethene is:',o:['C₂H₂','C₂H₄','C₂H₆','CH₄'],a:1,e:'Ethene is an alkene with formula C₂H₄.'},
  {c:'Hydrocarbons',l:'Hard',q:'Addition of H₂ to ethene in the presence of a suitable catalyst produces:',o:['Ethane','Ethyne','Methane','Ethanol'],a:0,e:'Hydrogenation adds hydrogen across the double bond to form ethane.'}
  ]};
+window.studyBuddySubjectData=subjectData;
+window.studyBuddyQuestionBank=questionBank;
 let practiceRound=[],practiceIndex=0,practiceAnswers=[],practiceFinished=false,practiceRoundNote='';
 function refreshPracticeChapters(){
  const subjectSelect=document.querySelector('#practiceSubject'),sel=document.querySelector('#practiceChapter');
