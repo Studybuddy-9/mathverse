@@ -37,14 +37,48 @@ section[hidden]{display:none!important}
 .assistant-compose{display:flex;gap:10px;margin-top:12px;align-items:stretch}.assistant-compose textarea{flex:1;min-width:0;resize:vertical;background:#0b1427;border:1px solid var(--line);border-radius:11px;padding:12px;color:var(--text);font:inherit}.assistant-compose .btn{align-self:stretch;white-space:nowrap}
 .assistant-footer{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:.85rem}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:600px){.assistant-controls{grid-template-columns:1fr}.assistant-chat{height:340px}.assistant-compose{flex-direction:column}.assistant-compose .btn{width:100%}.assistant-message{max-width:100%}}
+
+/* Progress analytics dashboard */
+.analytics-summary{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+.analytics-summary .card h2{font-size:clamp(1.55rem,3vw,2.1rem);margin:4px 0}
+.analytics-layout{display:grid;grid-template-columns:1.05fr .95fr;gap:16px;margin:16px 0}
+.analytics-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;align-items:end;min-height:190px;padding:14px 8px 4px;background:#0b1427;border:1px solid var(--line);border-radius:12px}
+.analytics-day{display:flex;min-width:0;height:160px;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px}
+.analytics-bar-track{height:125px;width:min(100%,34px);display:flex;align-items:flex-end;background:#17233b;border-radius:8px 8px 4px 4px;overflow:hidden}
+.analytics-bar{width:100%;min-height:3px;border-radius:8px 8px 3px 3px;background:linear-gradient(0deg,#a99bff,#68e1fd)}
+.analytics-day b{font-size:.72rem;color:var(--muted);font-weight:600}
+.analytics-day small{font-size:.68rem;color:var(--text);white-space:nowrap}
+.analytics-footnote,.analytics-privacy{font-size:.84rem}
+.analytics-chapter{padding:11px 0;border-bottom:1px solid var(--line)}
+.analytics-chapter:last-child{border-bottom:0}
+.analytics-chapter-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:.9rem}
+.analytics-meter{height:8px;background:#0b1427;border-radius:20px;overflow:hidden;margin-top:8px}
+.analytics-meter span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#68e1fd,#a99bff)}
+.analytics-insight{margin-top:16px}.analytics-insight p{margin:7px 0}
+@media(max-width:850px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
+@media(max-width:480px){.analytics-week{gap:4px;padding:10px 4px}.analytics-day small{font-size:.6rem}.analytics-day b{font-size:.65rem}}
 </style></head>
 <body>
-<header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#assistant">AI Study Assistant</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a></div></nav></header>
+<header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#analytics">Progress Analytics</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#assistant">AI Study Assistant</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a></div></nav></header>
 <main class="wrap">
 <section class="hero tab-panel" data-tab-panel id="home"><div><div class="tag">CLASS 11 • MATHEMATICS • PHYSICS • CHEMISTRY</div><h1>Make learning<br><em>make sense.</em></h1><p>Explore chapters, revise key formulas, practise questions from easy to hard, and track your learning in one student-friendly hub.</p><a class="btn" href="#daily">Create student profile ↗</a></div><div class="orb">∑</div></section><section id="daily" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR LEARNING</div><h2>Student Profile</h2><p class="muted">Your name and today's learning progress.</p></div></div>
 <div class="tool" style="margin-bottom:16px"><h3>Student name</h3><div style="max-width:520px"><label for="studentName">Student name</label><input id="studentName" maxlength="40" autocomplete="name" placeholder="Enter your name" style="width:100%;margin:8px 0"><button class="btn" id="saveStudent" type="button">Save name</button><p id="profileMessage" class="muted" aria-live="polite"></p></div></div>
 <div class="tool"><h3 id="dailyHeading">Today's progress</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"><div class="card"><span class="pill">STUDY TIME</span><h2 id="todayMinutes">0 min</h2></div><div class="card"><span class="pill">QUESTIONS</span><h2 id="todayQuestions">0</h2></div><div class="card"><span class="pill">DAY SCORE</span><h2 id="todayPoints">0</h2></div><div class="card"><span class="pill">STREAK</span><h2 id="studyStreak">0 days</h2></div></div><p class="muted">Your progress is based on study sessions saved on this device. Score = 1 point per 10 study minutes + 2 points per question solved.</p></div>
+</section><section id="analytics" class="tab-panel" data-tab-panel>
+<div class="heading"><div><div class="tag">YOUR LEARNING, MADE VISIBLE</div><h2>Progress Analytics</h2><p class="muted">See your study activity, practice accuracy and chapters to revisit.</p></div><button class="btn secondary" id="refreshAnalytics" type="button">Refresh data ↻</button></div>
+<div class="analytics-summary grid">
+ <div class="card"><span class="pill">STUDY TIME • 7 DAYS</span><h2 id="analyticsMinutes">0 min</h2><p>Recorded study time</p></div>
+ <div class="card"><span class="pill">PRACTICE QUESTIONS • 7 DAYS</span><h2 id="analyticsQuestions">0</h2><p>Questions answered in practice</p></div>
+ <div class="card"><span class="pill">PRACTICE ACCURACY</span><h2 id="analyticsAccuracy">—</h2><p id="analyticsAccuracyNote">Answer questions to see accuracy</p></div>
+ <div class="card"><span class="pill">ACTIVE DAYS • 7 DAYS</span><h2 id="analyticsActiveDays">0 / 7</h2><p>Days with recorded activity</p></div>
+</div>
+<div class="analytics-layout">
+ <div class="tool"><h3>Last 7 days</h3><p class="muted">Recorded study minutes by day</p><div id="analyticsWeek" class="analytics-week" aria-label="Study minutes chart"></div><p class="muted analytics-footnote">Study time uses sessions already saved in your Student Profile on this browser.</p></div>
+ <div class="tool"><h3>Chapter performance</h3><p class="muted">Based on answers submitted in Question Practice</p><div id="analyticsChapters" class="analytics-chapters"><p class="muted">No practice data yet. Complete a Question Practice round to see chapter insights.</p></div></div>
+</div>
+<div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
+<p class="muted analytics-privacy">Your analytics are calculated in this browser using your saved study log and practice answers. They are not uploaded to a server.</p>
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
 <div class="assistant-shell">
@@ -253,6 +287,69 @@ section[hidden]{display:none!important}
   status.textContent='Conversation cleared from this page.';
  });
 })();
+
+
+// Progress Analytics: combines existing saved study sessions with newly recorded practice answers.
+const analyticsEventKey='studybuddy-analytics-events-v1';
+function readAnalyticsEvents(){try{const value=JSON.parse(localStorage.getItem(analyticsEventKey)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
+function recordStudyBuddyAnswer(answer){
+ try{
+  const events=readAnalyticsEvents();
+  events.push({date:todayISO(),subject:String(answer.subject||'Unknown'),chapter:String(answer.chapter||'Unspecified'),correct:!!answer.correct,question:String(answer.question||'').slice(0,220),at:Date.now()});
+  localStorage.setItem(analyticsEventKey,JSON.stringify(events.slice(-5000)));
+ }catch(error){console.warn('StudyBuddy analytics could not save this answer:',error)}
+}
+function renderAnalytics(){
+ const week=document.querySelector('#analyticsWeek'),chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
+ if(!week||!chaptersBox||!insights)return;
+ const now=new Date(),days=[];
+ for(let offset=6;offset>=0;offset--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-offset,12);days.push({date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),label:d.toLocaleDateString(undefined,{weekday:'short'}),minutes:0,questions:0,correct:0})}
+ const allStudy=readStudy(),events=readAnalyticsEvents(),byDate=new Map(days.map(d=>[d.date,d]));
+ allStudy.forEach(entry=>{const day=byDate.get(entry.date);if(day)day.minutes+=Math.max(0,Number(entry.minutes)||0)});
+ events.forEach(event=>{const day=byDate.get(event.date);if(day){day.questions++;if(event.correct)day.correct++}});
+ const totalMinutes=days.reduce((n,d)=>n+d.minutes,0),totalQuestions=days.reduce((n,d)=>n+d.questions,0),totalCorrect=days.reduce((n,d)=>n+d.correct,0),active=days.filter(d=>d.minutes>0||d.questions>0).length;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ set('analyticsMinutes',totalMinutes>=60?Math.floor(totalMinutes/60)+' hr '+(totalMinutes%60)+' min':totalMinutes+' min');
+ set('analyticsQuestions',String(totalQuestions));
+ set('analyticsAccuracy',totalQuestions?Math.round(totalCorrect/totalQuestions*100)+'%':'—');
+ set('analyticsAccuracyNote',totalQuestions?totalCorrect+' correct out of '+totalQuestions+' answered':'Answer questions to see accuracy');
+ set('analyticsActiveDays',active+' / 7');
+ week.innerHTML='';
+ const maxMinutes=Math.max(30,...days.map(d=>d.minutes));
+ days.forEach(day=>{
+  const col=document.createElement('div');col.className='analytics-day';
+  const value=document.createElement('small');value.textContent=day.minutes+'m';
+  const track=document.createElement('div');track.className='analytics-bar-track';track.title=day.date+': '+day.minutes+' study minutes';
+  const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(day.minutes?Math.max(5,day.minutes/maxMinutes*100):0)+'%';track.append(bar);
+  const label=document.createElement('b');label.textContent=day.label;
+  col.append(value,track,label);week.append(col);
+ });
+ const chapterMap=new Map();
+ events.forEach(event=>{const key=(event.subject||'Unknown')+' • '+(event.chapter||'Unspecified');const item=chapterMap.get(key)||{name:key,total:0,correct:0};item.total++;if(event.correct)item.correct++;chapterMap.set(key,item)});
+ const performance=[...chapterMap.values()].sort((a,b)=>b.total-a.total);
+ chaptersBox.innerHTML='';
+ if(!performance.length){const p=document.createElement('p');p.className='muted';p.textContent='No practice data yet. Complete a Question Practice round to see chapter insights.';chaptersBox.append(p)}
+ else performance.slice(0,8).forEach(item=>{
+  const row=document.createElement('div');row.className='analytics-chapter';
+  const head=document.createElement('div');head.className='analytics-chapter-head';
+  const name=document.createElement('b');name.textContent=item.name;
+  const score=document.createElement('span');score.textContent=Math.round(item.correct/item.total*100)+'% • '+item.total+' Q';
+  const meter=document.createElement('div');meter.className='analytics-meter';const fill=document.createElement('span');fill.style.width=(item.correct/item.total*100)+'%';meter.append(fill);
+  head.append(name,score);row.append(head,meter);chaptersBox.append(row);
+ });
+ insights.innerHTML='';
+ const messages=[];
+ if(!totalMinutes&&!totalQuestions)messages.push('No activity recorded in the last 7 days yet. Save study sessions in Student Profile and answer questions in Question Practice to start building your dashboard.');
+ else{
+  if(totalMinutes)messages.push('You recorded '+totalMinutes+' study minutes in the last 7 days.');
+  if(totalQuestions)messages.push('Your practice accuracy is '+Math.round(totalCorrect/totalQuestions*100)+'% across '+totalQuestions+' answered questions.');
+  if(performance.length){const strongest=performance.filter(x=>x.total>=2).sort((a,b)=>b.correct/b.total-a.correct/a.total)[0];const focus=performance.filter(x=>x.total>=2).sort((a,b)=>a.correct/a.total-b.correct/b.total)[0];if(strongest)messages.push('Strongest recent chapter: '+strongest.name+' ('+Math.round(strongest.correct/strongest.total*100)+'%).');if(focus&&focus!==strongest)messages.push('Revision suggestion: revisit '+focus.name+' and practise a few more questions.');}
+  if(!totalMinutes)messages.push('No study-time sessions are saved for this week yet; your question-practice activity is still being counted.');
+ }
+ messages.forEach(message=>{const p=document.createElement('p');p.textContent='• '+message;insights.append(p)});
+}
+const analyticsRefresh=document.querySelector('#refreshAnalytics');if(analyticsRefresh)analyticsRefresh.addEventListener('click',renderAnalytics);
+renderAnalytics();
 </script>
 <script>
 const chapters=[
@@ -599,7 +696,7 @@ function renderPracticeQuestion(){
    if(saved){b.disabled=true;if(j===q.a)b.classList.add('correct');else if(j===saved.choice)b.classList.add('wrong')}
    b.addEventListener('click',()=>{
     if(practiceAnswers[index]!==null)return;
-    practiceAnswers[index]={choice:j,correct:j===q.a};practiceIndex=index;
+    practiceAnswers[index]={choice:j,correct:j===q.a};if(typeof recordStudyBuddyAnswer==='function')recordStudyBuddyAnswer({subject:document.querySelector('#practiceSubject')?.value||'Unknown',chapter:q.c||'Unspecified',correct:j===q.a,question:q.q||''});practiceIndex=index;
     renderPracticeQuestion();
    });
    card.append(b);
