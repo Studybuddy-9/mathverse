@@ -289,67 +289,6 @@ section[hidden]{display:none!important}
 })();
 
 
-// Progress Analytics: combines existing saved study sessions with newly recorded practice answers.
-const analyticsEventKey='studybuddy-analytics-events-v1';
-function readAnalyticsEvents(){try{const value=JSON.parse(localStorage.getItem(analyticsEventKey)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
-function recordStudyBuddyAnswer(answer){
- try{
-  const events=readAnalyticsEvents();
-  events.push({date:todayISO(),subject:String(answer.subject||'Unknown'),chapter:String(answer.chapter||'Unspecified'),correct:!!answer.correct,question:String(answer.question||'').slice(0,220),at:Date.now()});
-  localStorage.setItem(analyticsEventKey,JSON.stringify(events.slice(-5000)));
- }catch(error){console.warn('StudyBuddy analytics could not save this answer:',error)}
-}
-function renderAnalytics(){
- const week=document.querySelector('#analyticsWeek'),chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
- if(!week||!chaptersBox||!insights)return;
- const now=new Date(),days=[];
- for(let offset=6;offset>=0;offset--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-offset,12);days.push({date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),label:d.toLocaleDateString(undefined,{weekday:'short'}),minutes:0,questions:0,correct:0})}
- const allStudy=readStudy(),events=readAnalyticsEvents(),byDate=new Map(days.map(d=>[d.date,d]));
- allStudy.forEach(entry=>{const day=byDate.get(entry.date);if(day)day.minutes+=Math.max(0,Number(entry.minutes)||0)});
- events.forEach(event=>{const day=byDate.get(event.date);if(day){day.questions++;if(event.correct)day.correct++}});
- const totalMinutes=days.reduce((n,d)=>n+d.minutes,0),totalQuestions=days.reduce((n,d)=>n+d.questions,0),totalCorrect=days.reduce((n,d)=>n+d.correct,0),active=days.filter(d=>d.minutes>0||d.questions>0).length;
- const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
- set('analyticsMinutes',totalMinutes>=60?Math.floor(totalMinutes/60)+' hr '+(totalMinutes%60)+' min':totalMinutes+' min');
- set('analyticsQuestions',String(totalQuestions));
- set('analyticsAccuracy',totalQuestions?Math.round(totalCorrect/totalQuestions*100)+'%':'—');
- set('analyticsAccuracyNote',totalQuestions?totalCorrect+' correct out of '+totalQuestions+' answered':'Answer questions to see accuracy');
- set('analyticsActiveDays',active+' / 7');
- week.innerHTML='';
- const maxMinutes=Math.max(30,...days.map(d=>d.minutes));
- days.forEach(day=>{
-  const col=document.createElement('div');col.className='analytics-day';
-  const value=document.createElement('small');value.textContent=day.minutes+'m';
-  const track=document.createElement('div');track.className='analytics-bar-track';track.title=day.date+': '+day.minutes+' study minutes';
-  const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(day.minutes?Math.max(5,day.minutes/maxMinutes*100):0)+'%';track.append(bar);
-  const label=document.createElement('b');label.textContent=day.label;
-  col.append(value,track,label);week.append(col);
- });
- const chapterMap=new Map();
- events.forEach(event=>{const key=(event.subject||'Unknown')+' • '+(event.chapter||'Unspecified');const item=chapterMap.get(key)||{name:key,total:0,correct:0};item.total++;if(event.correct)item.correct++;chapterMap.set(key,item)});
- const performance=[...chapterMap.values()].sort((a,b)=>b.total-a.total);
- chaptersBox.innerHTML='';
- if(!performance.length){const p=document.createElement('p');p.className='muted';p.textContent='No practice data yet. Complete a Question Practice round to see chapter insights.';chaptersBox.append(p)}
- else performance.slice(0,8).forEach(item=>{
-  const row=document.createElement('div');row.className='analytics-chapter';
-  const head=document.createElement('div');head.className='analytics-chapter-head';
-  const name=document.createElement('b');name.textContent=item.name;
-  const score=document.createElement('span');score.textContent=Math.round(item.correct/item.total*100)+'% • '+item.total+' Q';
-  const meter=document.createElement('div');meter.className='analytics-meter';const fill=document.createElement('span');fill.style.width=(item.correct/item.total*100)+'%';meter.append(fill);
-  head.append(name,score);row.append(head,meter);chaptersBox.append(row);
- });
- insights.innerHTML='';
- const messages=[];
- if(!totalMinutes&&!totalQuestions)messages.push('No activity recorded in the last 7 days yet. Save study sessions in Student Profile and answer questions in Question Practice to start building your dashboard.');
- else{
-  if(totalMinutes)messages.push('You recorded '+totalMinutes+' study minutes in the last 7 days.');
-  if(totalQuestions)messages.push('Your practice accuracy is '+Math.round(totalCorrect/totalQuestions*100)+'% across '+totalQuestions+' answered questions.');
-  if(performance.length){const strongest=performance.filter(x=>x.total>=2).sort((a,b)=>b.correct/b.total-a.correct/a.total)[0];const focus=performance.filter(x=>x.total>=2).sort((a,b)=>a.correct/a.total-b.correct/b.total)[0];if(strongest)messages.push('Strongest recent chapter: '+strongest.name+' ('+Math.round(strongest.correct/strongest.total*100)+'%).');if(focus&&focus!==strongest)messages.push('Revision suggestion: revisit '+focus.name+' and practise a few more questions.');}
-  if(!totalMinutes)messages.push('No study-time sessions are saved for this week yet; your question-practice activity is still being counted.');
- }
- messages.forEach(message=>{const p=document.createElement('p');p.textContent='• '+message;insights.append(p)});
-}
-const analyticsRefresh=document.querySelector('#refreshAnalytics');if(analyticsRefresh)analyticsRefresh.addEventListener('click',renderAnalytics);
-renderAnalytics();
 </script>
 <script>
 const chapters=[
@@ -988,5 +927,67 @@ document.addEventListener('DOMContentLoaded',()=>{
   function renderShuffled(){if(!visible.length){render();return;}revealed=false;const c=visible[index].c;tag.textContent=c[0].toUpperCase()+' • '+c[1].toUpperCase();prompt.textContent=c[2];answer.textContent=c[3];answer.hidden=true;hint.textContent='Shuffled deck • think of your answer before revealing it.';counter.textContent='Card '+(index+1)+' of '+visible.length;$('revealRevision').disabled=false;$('masterRevision').disabled=false;$('masterRevision').textContent=mastered[visible[index].id]?'Mastered ✓':'Mark as mastered';$('revealRevision').textContent='Reveal answer';updateProgress();}
   subject.addEventListener('change',()=>{index=0;render();});render();
  })();
+
+// Progress Analytics: combines existing saved study sessions with newly recorded practice answers.
+const analyticsEventKey='studybuddy-analytics-events-v1';
+function readAnalyticsEvents(){try{const value=JSON.parse(localStorage.getItem(analyticsEventKey)||'[]');return Array.isArray(value)?value:[]}catch{return []}}
+function recordStudyBuddyAnswer(answer){
+ try{
+  const events=readAnalyticsEvents();
+  events.push({date:todayISO(),subject:String(answer.subject||'Unknown'),chapter:String(answer.chapter||'Unspecified'),correct:!!answer.correct,question:String(answer.question||'').slice(0,220),at:Date.now()});
+  localStorage.setItem(analyticsEventKey,JSON.stringify(events.slice(-5000)));
+ }catch(error){console.warn('StudyBuddy analytics could not save this answer:',error)}
+}
+function renderAnalytics(){
+ const week=document.querySelector('#analyticsWeek'),chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
+ if(!week||!chaptersBox||!insights)return;
+ const now=new Date(),days=[];
+ for(let offset=6;offset>=0;offset--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-offset,12);days.push({date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),label:d.toLocaleDateString(undefined,{weekday:'short'}),minutes:0,questions:0,correct:0})}
+ const allStudy=readStudy(),events=readAnalyticsEvents(),byDate=new Map(days.map(d=>[d.date,d]));
+ allStudy.forEach(entry=>{const day=byDate.get(entry.date);if(day)day.minutes+=Math.max(0,Number(entry.minutes)||0)});
+ events.forEach(event=>{const day=byDate.get(event.date);if(day){day.questions++;if(event.correct)day.correct++}});
+ const totalMinutes=days.reduce((n,d)=>n+d.minutes,0),totalQuestions=days.reduce((n,d)=>n+d.questions,0),totalCorrect=days.reduce((n,d)=>n+d.correct,0),active=days.filter(d=>d.minutes>0||d.questions>0).length;
+ const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
+ set('analyticsMinutes',totalMinutes>=60?Math.floor(totalMinutes/60)+' hr '+(totalMinutes%60)+' min':totalMinutes+' min');
+ set('analyticsQuestions',String(totalQuestions));
+ set('analyticsAccuracy',totalQuestions?Math.round(totalCorrect/totalQuestions*100)+'%':'—');
+ set('analyticsAccuracyNote',totalQuestions?totalCorrect+' correct out of '+totalQuestions+' answered':'Answer questions to see accuracy');
+ set('analyticsActiveDays',active+' / 7');
+ week.innerHTML='';
+ const maxMinutes=Math.max(30,...days.map(d=>d.minutes));
+ days.forEach(day=>{
+  const col=document.createElement('div');col.className='analytics-day';
+  const value=document.createElement('small');value.textContent=day.minutes+'m';
+  const track=document.createElement('div');track.className='analytics-bar-track';track.title=day.date+': '+day.minutes+' study minutes';
+  const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(day.minutes?Math.max(5,day.minutes/maxMinutes*100):0)+'%';track.append(bar);
+  const label=document.createElement('b');label.textContent=day.label;
+  col.append(value,track,label);week.append(col);
+ });
+ const chapterMap=new Map();
+ events.forEach(event=>{const key=(event.subject||'Unknown')+' • '+(event.chapter||'Unspecified');const item=chapterMap.get(key)||{name:key,total:0,correct:0};item.total++;if(event.correct)item.correct++;chapterMap.set(key,item)});
+ const performance=[...chapterMap.values()].sort((a,b)=>b.total-a.total);
+ chaptersBox.innerHTML='';
+ if(!performance.length){const p=document.createElement('p');p.className='muted';p.textContent='No practice data yet. Complete a Question Practice round to see chapter insights.';chaptersBox.append(p)}
+ else performance.slice(0,8).forEach(item=>{
+  const row=document.createElement('div');row.className='analytics-chapter';
+  const head=document.createElement('div');head.className='analytics-chapter-head';
+  const name=document.createElement('b');name.textContent=item.name;
+  const score=document.createElement('span');score.textContent=Math.round(item.correct/item.total*100)+'% • '+item.total+' Q';
+  const meter=document.createElement('div');meter.className='analytics-meter';const fill=document.createElement('span');fill.style.width=(item.correct/item.total*100)+'%';meter.append(fill);
+  head.append(name,score);row.append(head,meter);chaptersBox.append(row);
+ });
+ insights.innerHTML='';
+ const messages=[];
+ if(!totalMinutes&&!totalQuestions)messages.push('No activity recorded in the last 7 days yet. Save study sessions in Student Profile and answer questions in Question Practice to start building your dashboard.');
+ else{
+  if(totalMinutes)messages.push('You recorded '+totalMinutes+' study minutes in the last 7 days.');
+  if(totalQuestions)messages.push('Your practice accuracy is '+Math.round(totalCorrect/totalQuestions*100)+'% across '+totalQuestions+' answered questions.');
+  if(performance.length){const strongest=performance.filter(x=>x.total>=2).sort((a,b)=>b.correct/b.total-a.correct/a.total)[0];const focus=performance.filter(x=>x.total>=2).sort((a,b)=>a.correct/a.total-b.correct/b.total)[0];if(strongest)messages.push('Strongest recent chapter: '+strongest.name+' ('+Math.round(strongest.correct/strongest.total*100)+'%).');if(focus&&focus!==strongest)messages.push('Revision suggestion: revisit '+focus.name+' and practise a few more questions.');}
+  if(!totalMinutes)messages.push('No study-time sessions are saved for this week yet; your question-practice activity is still being counted.');
+ }
+ messages.forEach(message=>{const p=document.createElement('p');p.textContent='• '+message;insights.append(p)});
+}
+const analyticsRefresh=document.querySelector('#refreshAnalytics');if(analyticsRefresh)analyticsRefresh.addEventListener('click',renderAnalytics);
+renderAnalytics();
 
 </script></body></html>
