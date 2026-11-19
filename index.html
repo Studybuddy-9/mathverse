@@ -69,9 +69,10 @@ section[hidden]{display:none!important}
   <span class="pill">CLOUD BACKUP</span><h3>Sync your learning with Supabase</h3>
   <p class="muted">Create an account or sign in with the same account on another device to sync your profile, practice history and study planner.</p>
   <p id="supabaseStatus" role="status" class="muted" style="padding:10px;background:#0b1427;border:1px solid var(--line);border-radius:10px;margin:12px 0">Connecting to StudyBuddy cloud database…</p>
-  <label for="syncEmail">Email address</label><input id="syncEmail" type="email" autocomplete="email" placeholder="Enter your email" style="width:100%;margin:6px 0 10px">
-  <label for="syncPassword">Password</label><input id="syncPassword" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters" style="width:100%;margin:6px 0 10px">
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="supabaseSignUp" type="button">Create sync account</button><button class="btn secondary" id="supabaseSignIn" type="button">Sign in</button><button class="btn secondary" id="supabaseSignOut" type="button" hidden>Sign out</button></div>
+  <p id="supabaseAccountHint" class="muted" style="font-size:.85rem;margin:8px 0" aria-live="polite">Enter your email and password to create an account or sign in.</p>
+  <label for="syncEmail">Email address</label><input id="syncEmail" type="email" autocomplete="email" aria-describedby="supabaseAccountHint" placeholder="Enter your email" style="width:100%;margin:6px 0 10px">
+  <label for="syncPassword">Password</label><input id="syncPassword" type="password" minlength="8" autocomplete="current-password" aria-describedby="supabaseAccountHint" placeholder="At least 8 characters" style="width:100%;margin:6px 0 10px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="supabaseSignUp" type="button">Create sync account</button><button class="btn secondary" id="supabaseSignIn" type="button">Sign in</button><button class="btn secondary" id="supabaseSignOut" type="button" hidden>Sign out &amp; switch account</button></div>
   <p id="supabaseMessage" class="muted" aria-live="polite"></p>
  </div>
  <div class="detail-card">
@@ -992,6 +993,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('shuffleRevision').addEventListener('click',()=>{visible=filtered();for(let i=visible.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[visible[i],visible[j]]=[visible[j],visible[i]];}index=0;revealed=false;renderShuffled();});
   function renderShuffled(){if(!visible.length){render();return;}revealed=false;const c=visible[index].c;tag.textContent=c[0].toUpperCase()+' • '+c[1].toUpperCase();prompt.textContent=c[2];answer.textContent=c[3];answer.hidden=true;hint.textContent='Shuffled deck • think of your answer before revealing it.';counter.textContent='Card '+(index+1)+' of '+visible.length;$('revealRevision').disabled=false;$('masterRevision').disabled=false;$('masterRevision').textContent=mastered[visible[index].id]?'Mastered ✓':'Mark as mastered';$('revealRevision').textContent='Reveal answer';updateProgress();}
   subject.addEventListener('change',()=>{index=0;render();});render();
+  window.addEventListener('studybuddy:account-storage-changed',function(){
+   try{const saved=JSON.parse(localStorage.getItem(storageKey)||'{}');mastered=saved&&typeof saved==='object'&&!Array.isArray(saved)?saved:{}}catch(e){mastered={}}
+   index=0;render();
+  });
  })();
 
 // Progress Analytics: combines existing saved study sessions with newly recorded practice answers.
@@ -1097,6 +1102,12 @@ renderAnalytics();
     if ($('supabaseSignOut')) $('supabaseSignOut').hidden = !signedInUser;
     if ($('syncEmail')) $('syncEmail').disabled = !!signedInUser;
     if ($('syncPassword')) $('syncPassword').disabled = !!signedInUser;
+    const hint = $('supabaseAccountHint');
+    if (hint) {
+      hint.textContent = signedInUser
+        ? 'You are already signed in' + (signedInUser.email ? ' as ' + signedInUser.email : '') + '. To use another account, click “Sign out & switch account”. The email and password fields will then become available.'
+        : 'Enter your email and password to create a new student account or sign in to an existing one.';
+    }
   }
   function showLocalOnly() {
     signedInUser = null;
@@ -1110,6 +1121,106 @@ renderAnalytics();
       localStorage.setItem(profileStoreKey, JSON.stringify(profileInfo));
       localStorage.setItem('mathverse-active-student', name);
     } catch (_) {}
+  }
+
+  /* Keep browser-local learning data separate when different students share one device. */
+  const accountStatePrefix = 'studybuddy-account-local-state-v1:';
+  const guestStateKey = 'studybuddy-guest-local-state-v1';
+  const activeStorageAccountKey = 'studybuddy-active-local-account-v1';
+  const revisionStorageKey = 'studybuddy_revision_mastered_v1';
+  const fixedLocalStateKeys = [
+    profileStoreKey, 'mathverse-active-student', analyticsEventKey,
+    plannerStorageKey, revisionStorageKey
+  ];
+
+  function listLocalStateKeys() {
+    const keys = fixedLocalStateKeys.slice();
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.indexOf('mathverse-study-log:') === 0) keys.push(key);
+      }
+    } catch (_) {}
+    return Array.from(new Set(keys));
+  }
+
+  function saveLocalStateTo(bucketKey) {
+    try {
+      const state = {};
+      listLocalStateKeys().forEach(function (key) {
+        const value = localStorage.getItem(key);
+        if (value !== null) state[key] = value;
+      });
+      localStorage.setItem(bucketKey, JSON.stringify(state));
+    } catch (error) {
+      console.warn('StudyBuddy could not save this device’s local account cache:', error);
+    }
+  }
+
+  function restoreLocalStateFrom(bucketKey) {
+    listLocalStateKeys().forEach(function (key) { try { localStorage.removeItem(key); } catch (_) {} });
+    try {
+      const state = JSON.parse(localStorage.getItem(bucketKey) || '{}');
+      if (!state || typeof state !== 'object' || Array.isArray(state)) return;
+      Object.keys(state).forEach(function (key) {
+        const allowed = fixedLocalStateKeys.indexOf(key) !== -1 || key.indexOf('mathverse-study-log:') === 0;
+        if (allowed && typeof state[key] === 'string') localStorage.setItem(key, state[key]);
+      });
+    } catch (error) {
+      console.warn('StudyBuddy could not restore this device’s local account cache:', error);
+    }
+  }
+
+  function refreshLocalStateBindings() {
+    try {
+      const savedProfile = JSON.parse(localStorage.getItem(profileStoreKey) || 'null');
+      if (savedProfile && typeof savedProfile.name === 'string') {
+        profileInfo = { name: savedProfile.name };
+        activeStudent = savedProfile.name;
+      } else {
+        activeStudent = localStorage.getItem('mathverse-active-student') || '';
+        profileInfo = { name: activeStudent };
+      }
+    } catch (_) {
+      activeStudent = '';
+      profileInfo = { name: '' };
+    }
+    if ($('studentName')) $('studentName').value = profileInfo.name || '';
+    if (typeof plannerTasks !== 'undefined') {
+      try {
+        const savedTasks = JSON.parse(localStorage.getItem(plannerStorageKey) || '[]');
+        plannerTasks = Array.isArray(savedTasks) ? savedTasks : [];
+      } catch (_) { plannerTasks = []; }
+      if (typeof renderPlanner === 'function') renderPlanner();
+    }
+    if (typeof renderAnalytics === 'function') renderAnalytics();
+    try { window.dispatchEvent(new Event('studybuddy:account-storage-changed')); } catch (_) {}
+  }
+
+  function activateAccountLocalState(userId) {
+    if (!userId) return;
+    try {
+      const currentUserId = localStorage.getItem(activeStorageAccountKey);
+      if (currentUserId === userId) return;
+      saveLocalStateTo(currentUserId ? accountStatePrefix + currentUserId : guestStateKey);
+      restoreLocalStateFrom(accountStatePrefix + userId);
+      localStorage.setItem(activeStorageAccountKey, userId);
+      refreshLocalStateBindings();
+    } catch (error) {
+      console.warn('StudyBuddy could not switch to the student’s local data area:', error);
+    }
+  }
+
+  function activateGuestLocalState() {
+    try {
+      const currentUserId = localStorage.getItem(activeStorageAccountKey);
+      if (currentUserId) saveLocalStateTo(accountStatePrefix + currentUserId);
+      restoreLocalStateFrom(guestStateKey);
+      localStorage.removeItem(activeStorageAccountKey);
+      refreshLocalStateBindings();
+    } catch (error) {
+      console.warn('StudyBuddy could not restore the device-only learning data:', error);
+    }
   }
   function persistEvents(events) {
     try { localStorage.setItem(analyticsEventKey, JSON.stringify(events.slice(-5000))); } catch (_) {}
@@ -1276,6 +1387,7 @@ renderAnalytics();
       const sessionResult = await client.auth.getSession();
       if (sessionResult.error) throw sessionResult.error;
       if (sessionResult.data.session && sessionResult.data.session.user) {
+        activateAccountLocalState(sessionResult.data.session.user.id);
         signedInUser = sessionResult.data.session.user;
         setAuthUi();
         await syncAllData(signedInUser);
@@ -1307,6 +1419,7 @@ renderAnalytics();
     });
     if (result.error) { setMessage(result.error.message, true); return; }
     if (result.data.session && result.data.user) {
+      activateAccountLocalState(result.data.user.id);
       signedInUser = result.data.user;
       setAuthUi();
       await syncAllData(signedInUser);
@@ -1323,6 +1436,7 @@ renderAnalytics();
     setMessage('Signing in…', false);
     const result = await client.auth.signInWithPassword({ email: email, password: password });
     if (result.error) { setMessage(result.error.message, true); return; }
+    activateAccountLocalState(result.data.user.id);
     signedInUser = result.data.user;
     setAuthUi();
     await syncAllData(signedInUser);
@@ -1333,9 +1447,12 @@ renderAnalytics();
     const result = await client.auth.signOut();
     if (result.error) { setMessage(result.error.message, true); return; }
     signedInUser = null;
+    activateGuestLocalState();
     setAuthUi();
     showLocalOnly();
-    setMessage('Signed out. A copy of this device’s saved data remains in this browser.', false);
+    if ($('syncEmail')) $('syncEmail').value = '';
+    if ($('syncPassword')) $('syncPassword').value = '';
+    setMessage('Signed out. The email and password fields are now enabled. This device’s offline data remains saved separately.', false);
   });
 
   /* Keep cloud copies updated when the student answers questions or edits planner tasks. */
