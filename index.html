@@ -1564,10 +1564,16 @@ renderAnalytics();
     if (name.length < 2) { setMessage('Save a student name with at least 2 characters first.', true); return; }
     if (!email || password.length < 8) { setMessage('Enter a valid email address and a password with at least 8 characters.', true); return; }
     setMessage('Creating your secure sync account…', false);
+    /* Always return email confirmations to the actual GitHub Pages project URL,
+       not the account root (which returns a GitHub Pages 404). */
+    const confirmationRedirect = new URL('/mathverse/', window.location.origin).toString();
     const result = await client.auth.signUp({
       email: email,
       password: password,
-      options: { data: { display_name: name } }
+      options: {
+        data: { display_name: name },
+        emailRedirectTo: confirmationRedirect
+      }
     });
     if (result.error) { setMessage(result.error.message, true); return; }
     if (result.data.session && result.data.user) {
