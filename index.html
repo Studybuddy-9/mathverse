@@ -68,22 +68,16 @@ section[hidden]{display:none!important}
  <div class="detail-card">
   <span class="pill">CLOUD BACKUP</span><h3>Sync your learning with Supabase</h3>
   <p class="muted">Create an account or sign in with the same account on another device to sync your profile, practice history and study planner.</p>
-  <p id="supabaseStatus" role="status" class="muted" style="padding:10px;background:#0b1427;border:1px solid var(--line);border-radius:10px;margin:12px 0">Database not connected yet. Add your project details below.</p>
+  <p id="supabaseStatus" role="status" class="muted" style="padding:10px;background:#0b1427;border:1px solid var(--line);border-radius:10px;margin:12px 0">Connecting to StudyBuddy cloud database…</p>
   <label for="syncEmail">Email address</label><input id="syncEmail" type="email" autocomplete="email" placeholder="Enter your email" style="width:100%;margin:6px 0 10px">
   <label for="syncPassword">Password</label><input id="syncPassword" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters" style="width:100%;margin:6px 0 10px">
   <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="supabaseSignUp" type="button">Create sync account</button><button class="btn secondary" id="supabaseSignIn" type="button">Sign in</button><button class="btn secondary" id="supabaseSignOut" type="button" hidden>Sign out</button></div>
   <p id="supabaseMessage" class="muted" aria-live="polite"></p>
  </div>
  <div class="detail-card">
-  <span class="pill">ONE-TIME SETUP</span><h3>Connect your database</h3>
-  <p class="muted">Create a Supabase project, run the SQL setup file from this repository, then paste your Project URL and publishable key here.</p>
-  <details style="margin-top:12px">
-   <summary style="cursor:pointer;color:var(--cyan);font-weight:700">Enter Supabase project details</summary>
-   <label for="supabaseProjectUrl" style="display:block;margin-top:12px">Project URL</label><input id="supabaseProjectUrl" type="url" autocomplete="url" placeholder="https://your-project.supabase.co" style="width:100%;margin:6px 0 10px">
-   <label for="supabasePublishableKey">Publishable key (or legacy anon key)</label><input id="supabasePublishableKey" type="text" autocomplete="off" placeholder="sb_publishable_..." style="width:100%;margin:6px 0 10px">
-   <button class="btn" id="saveSupabaseConfig" type="button">Save and connect</button>
-   <p class="muted" style="font-size:.82rem">Only use the browser-safe publishable/anon key. Never paste a secret or service_role key into this website.</p>
-  </details>
+  <span class="pill">SHARED DATABASE</span><h3>One StudyBuddy database for everyone</h3>
+  <p class="muted">StudyBuddy connects automatically. Create your own student account or sign in on another device. Your profile, practice history and planner tasks are kept separate from other students’ accounts.</p>
+  <p class="muted" style="font-size:.85rem;margin-top:12px">Your account is protected by Supabase authentication and database row-level security.</p>
   <p class="muted" style="font-size:.85rem;margin-top:12px">Setup instructions: open <a href="SUPABASE_SETUP.md" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:underline">SUPABASE_SETUP.md</a> in the repository.</p>
  </div>
 </div>
@@ -1066,7 +1060,8 @@ renderAnalytics();
 /* StudyBuddy cloud database integration (Supabase Auth + Postgres with RLS). */
 (function () {
   const $ = (id) => document.getElementById(id);
-  const configKey = 'studybuddy-supabase-config-v1';
+  const SUPABASE_URL = 'https://acfqgpphxyweiinoymjk.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_MgLW7L4GIV9lkfz8T4OANA_fRT-RtFm';
   const plannerStorageKey = 'studybuddy-custom-planner-tasks-v1';
   let client = null;
   let signedInUser = null;
@@ -1095,15 +1090,7 @@ renderAnalytics();
   function isoDate(value) {
     return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : todayISO();
   }
-  function readConfig() {
-    try {
-      const value = JSON.parse(localStorage.getItem(configKey) || 'null');
-      return value && typeof value.url === 'string' && typeof value.key === 'string' ? value : null;
-    } catch (_) { return null; }
-  }
-  function saveConfig(config) {
-    localStorage.setItem(configKey, JSON.stringify(config));
-  }
+
   function setAuthUi() {
     if ($('supabaseSignUp')) $('supabaseSignUp').hidden = !!signedInUser;
     if ($('supabaseSignIn')) $('supabaseSignIn').hidden = !!signedInUser;
@@ -1114,7 +1101,7 @@ renderAnalytics();
   function showLocalOnly() {
     signedInUser = null;
     setAuthUi();
-    setStatus(client ? 'Database connected. Sign in to turn on cloud syncing.' : 'Database not connected yet. Add your project details below.');
+    setStatus(client ? 'StudyBuddy database connected. Sign in to turn on cloud syncing.' : 'Connecting to the StudyBuddy database…');
   }
   function persistProfileName(name) {
     profileInfo = { name: name };
@@ -1232,9 +1219,9 @@ renderAnalytics();
 
       /* Load cloud records and merge by ID, retaining any unsynced local entries. */
       const results = await Promise.all([
-        client.from('practice_events').select('id,event_date,subject,chapter,correct,question,created_at').order('created_at', { ascending: true }).limit(5000),
-        client.from('study_sessions').select('id,session_date,minutes,subject,chapter').order('session_date', { ascending: true }).limit(5000),
-        client.from('planner_tasks').select('id,title,done').order('created_at', { ascending: true }).limit(2000)
+        client.from('practice_events').select('id,event_date,subject,chapter,correct,question,created_at').eq('user_id', user.id).order('created_at', { ascending: true }).limit(5000),
+        client.from('study_sessions').select('id,session_date,minutes,subject,chapter').eq('user_id', user.id).order('session_date', { ascending: true }).limit(5000),
+        client.from('planner_tasks').select('id,title,done').eq('user_id', user.id).order('created_at', { ascending: true }).limit(2000)
       ]);
       for (const result of results) if (result.error) throw result.error;
 
@@ -1279,17 +1266,13 @@ renderAnalytics();
     }
   }
 
-  async function connectWithConfig(config) {
+  async function connectToSharedDatabase() {
     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
       setStatus('Supabase library could not load. Check your internet connection and reload.');
       return;
     }
-    if (!config || !/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(config.url) || !config.key) {
-      setStatus('Enter a valid Supabase Project URL and publishable/anon key.');
-      return;
-    }
     try {
-      client = window.supabase.createClient(config.url.replace(/\/$/, ''), config.key);
+      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
       const sessionResult = await client.auth.getSession();
       if (sessionResult.error) throw sessionResult.error;
       if (sessionResult.data.session && sessionResult.data.session.user) {
@@ -1301,38 +1284,16 @@ renderAnalytics();
       }
     } catch (error) {
       client = null;
-      setStatus('Could not connect to Supabase. Check your Project URL and key.');
+      setStatus('Could not connect to the StudyBuddy database. Please try again later.');
       setMessage(error && error.message ? error.message : 'Connection failed.', true);
     }
   }
 
-  const savedConfig = readConfig();
-  if (savedConfig) {
-    if ($('supabaseProjectUrl')) $('supabaseProjectUrl').value = savedConfig.url;
-    if ($('supabasePublishableKey')) $('supabasePublishableKey').value = savedConfig.key;
-    connectWithConfig(savedConfig);
-  } else {
-    showLocalOnly();
-  }
-
-  if ($('saveSupabaseConfig')) $('saveSupabaseConfig').addEventListener('click', async function () {
-    const url = ($('supabaseProjectUrl').value || '').trim();
-    const key = ($('supabasePublishableKey').value || '').trim();
-    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(url) || !key) {
-      setMessage('Please enter your Supabase Project URL and publishable/anon key.', true);
-      return;
-    }
-    try {
-      saveConfig({ url: url.replace(/\/$/, ''), key: key });
-      await connectWithConfig({ url: url.replace(/\/$/, ''), key: key });
-      setMessage('Project details saved in this browser. Now create an account or sign in.', false);
-    } catch (error) {
-      setMessage(error.message || 'Could not save the connection details.', true);
-    }
-  });
+  /* Connect every visitor to the same StudyBuddy project automatically. */
+  connectToSharedDatabase();
 
   if ($('supabaseSignUp')) $('supabaseSignUp').addEventListener('click', async function () {
-    if (!client) { setMessage('Connect your Supabase project first.', true); return; }
+    if (!client) { setMessage('StudyBuddy cloud is not available right now. Reload and try again.', true); return; }
     const email = ($('syncEmail').value || '').trim();
     const password = $('syncPassword').value || '';
     const name = ($('studentName').value || '').trim().replace(/\s+/g, ' ');
@@ -1355,7 +1316,7 @@ renderAnalytics();
   });
 
   if ($('supabaseSignIn')) $('supabaseSignIn').addEventListener('click', async function () {
-    if (!client) { setMessage('Connect your Supabase project first.', true); return; }
+    if (!client) { setMessage('StudyBuddy cloud is not available right now. Reload and try again.', true); return; }
     const email = ($('syncEmail').value || '').trim();
     const password = $('syncPassword').value || '';
     if (!email || !password) { setMessage('Enter your account email and password.', true); return; }
