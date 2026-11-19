@@ -1071,6 +1071,7 @@ renderAnalytics();
   let client = null;
   let signedInUser = null;
   let syncing = false;
+  let syncRequested = false;
 
   function setStatus(message) {
     const el = $('supabaseStatus');
@@ -1236,7 +1237,12 @@ renderAnalytics();
   }
 
   async function syncAllData(user) {
-    if (!client || !user || syncing) return;
+    if (!client || !user) return;
+    if (syncing) {
+      /* Queue another pass so edits made during an active upload are not lost. */
+      syncRequested = true;
+      return;
+    }
     syncing = true;
     setStatus('Signed in. Syncing your StudyBuddy data…');
     try {
@@ -1314,6 +1320,8 @@ renderAnalytics();
         if (!isUuid(task.id)) task.id = makeId();
         return task;
       });
+      /* Keep the live planner array in step with the UUIDs used by Supabase. */
+      if (typeof plannerTasks !== 'undefined') plannerTasks = localTasks;
       try { localStorage.setItem(plannerStorageKey, JSON.stringify(localTasks)); } catch (_) {}
       const taskRows = localTasks.map(function (task) {
         return {
@@ -1374,6 +1382,10 @@ renderAnalytics();
         ' — check that supabase/schema.sql has been run and your project is configured.', true);
     } finally {
       syncing = false;
+      if (syncRequested && signedInUser && client) {
+        syncRequested = false;
+        Promise.resolve().then(function () { return syncAllData(signedInUser); });
+      }
     }
   }
 
