@@ -8,6 +8,7 @@ StudyBuddy is a static GitHub Pages site. This integration uses the Supabase Jav
 2. Open the project's SQL Editor.
 3. Open `supabase/schema.sql` from this repository, copy the full contents, paste it into the SQL Editor, and run it.
 4. In the project settings / Connect dialog, copy the **Project URL** and the **publishable key**. A legacy `anon` key is also accepted.
+5. Open **Authentication → URL Configuration** and set the Site URL to your deployed StudyBuddy website address. Add that same address to the allowed Redirect URLs so confirmation links can return to your site.
 
 ## 2. Connect StudyBuddy
 
