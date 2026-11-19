@@ -771,9 +771,9 @@ const taskBox=document.querySelector('#tasks'),taskInput=document.querySelector(
 let plannerTasks=[];try{plannerTasks=JSON.parse(localStorage.getItem(plannerKey)||'[]');if(!Array.isArray(plannerTasks))plannerTasks=[]}catch{plannerTasks=[]}
 function savePlanner(){try{localStorage.setItem(plannerKey,JSON.stringify(plannerTasks))}catch{plannerMessage.textContent='Could not save tasks in this browser. Check browser storage settings.'}}
 function updateProgress(){const done=plannerTasks.filter(t=>t.done).length,total=plannerTasks.length;document.querySelector('#progressFill').style.width=(total?done/total*100:0)+'%';document.querySelector('#progressText').textContent=done+' of '+total+' tasks completed'}
-function renderPlanner(){taskBox.innerHTML='';if(!plannerTasks.length){plannerMessage.textContent='No tasks yet. Add your first study task above.'}else{plannerMessage.textContent='Your custom study tasks are saved on this device.'}plannerTasks.forEach(task=>{const row=document.createElement('div');row.className='planner-task';row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 0;flex-wrap:wrap';const label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:9px;flex:1;min-width:180px';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!task.done;cb.onchange=()=>{task.done=cb.checked;savePlanner();renderPlanner()};const text=document.createElement('span');text.textContent=task.text;text.style.textDecoration=task.done?'line-through':'none';label.append(cb,text);const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.textContent='Delete';remove.setAttribute('aria-label','Delete task: '+task.text);remove.onclick=()=>{plannerTasks=plannerTasks.filter(t=>t.id!==task.id);savePlanner();renderPlanner()};row.append(label,remove);taskBox.append(row)});updateProgress()}
+function renderPlanner(){taskBox.innerHTML='';if(!plannerTasks.length){plannerMessage.textContent='No tasks yet. Add your first study task above.'}else{plannerMessage.textContent='Your custom study tasks are saved on this device.'}plannerTasks.forEach(task=>{const row=document.createElement('div');row.className='planner-task';row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 0;flex-wrap:wrap';const label=document.createElement('label');label.style.cssText='display:flex;align-items:center;gap:9px;flex:1;min-width:180px';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!task.done;cb.onchange=()=>{task.done=cb.checked;savePlanner();renderPlanner()};const text=document.createElement('span');text.textContent=task.text;text.style.textDecoration=task.done?'line-through':'none';label.append(cb,text);const remove=document.createElement('button');remove.type='button';remove.className='btn secondary';remove.textContent='Delete';remove.setAttribute('aria-label','Delete task: '+task.text);remove.onclick=()=>{const deletedId=task.id;plannerTasks=plannerTasks.filter(t=>t.id!==deletedId);window.__studybuddySkipPlannerSync=true;savePlanner();renderPlanner();window.__studybuddySkipPlannerSync=false;window.dispatchEvent(new CustomEvent('studybuddy:planner-delete',{detail:{ids:[deletedId]}}))};row.append(label,remove);taskBox.append(row)});updateProgress()}
 function addPlannerTask(){const value=taskInput.value.trim();if(!value){plannerMessage.textContent='Please type a task before adding it.';taskInput.focus();return}plannerTasks.push({id:Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8),text:value,done:false});taskInput.value='';savePlanner();renderPlanner();taskInput.focus()}
-document.querySelector('#addCustomTask').onclick=addPlannerTask;taskInput.addEventListener('keydown',e=>{if(e.key==='Enter')addPlannerTask()});document.querySelector('#resetTasks').onclick=()=>{plannerTasks=[];savePlanner();renderPlanner()};renderPlanner();
+document.querySelector('#addCustomTask').onclick=addPlannerTask;taskInput.addEventListener('keydown',e=>{if(e.key==='Enter')addPlannerTask()});document.querySelector('#resetTasks').onclick=()=>{plannerTasks=[];window.__studybuddySkipPlannerSync=true;savePlanner();renderPlanner();window.__studybuddySkipPlannerSync=false;window.dispatchEvent(new CustomEvent('studybuddy:planner-delete',{detail:{clear:true}}))};renderPlanner();
 
 // The old syllabus widget was removed from the page; do not access its missing container.
 const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
@@ -1618,6 +1618,23 @@ renderAnalytics();
     setMessage('Signed out. The email and password fields are now enabled. This device’s offline data remains saved separately.', false);
   });
 
+  /* Apply planner deletions to Supabase as well as local storage.
+     Without this, the next sync merges deleted cloud rows back into the planner. */
+  window.addEventListener('studybuddy:planner-delete', async function (event) {
+    if (!client || !signedInUser) return;
+    try {
+      let request = client.from('planner_tasks').delete().eq('user_id', signedInUser.id);
+      const ids = event.detail && Array.isArray(event.detail.ids) ? event.detail.ids : [];
+      if (ids.length) request = request.in('id', ids);
+      const result = await request;
+      if (result.error) throw result.error;
+      await syncAllData(signedInUser);
+    } catch (error) {
+      console.error('StudyBuddy planner delete failed:', error);
+      setMessage('Could not delete the planner task from your cloud account: ' + (error.message || 'Database request failed'), true);
+    }
+  });
+
   /* Keep cloud copies updated when the student answers questions or edits planner tasks. */
   if (typeof recordStudyBuddyAnswer === 'function') {
     const originalRecordAnswer = recordStudyBuddyAnswer;
@@ -1630,7 +1647,7 @@ renderAnalytics();
     const originalSavePlanner = savePlanner;
     savePlanner = function () {
       originalSavePlanner();
-      if (signedInUser) syncAllData(signedInUser);
+      if (signedInUser && !window.__studybuddySkipPlannerSync) syncAllData(signedInUser);
     };
   }
   if ($('saveStudent')) $('saveStudent').addEventListener('click', async function () {
