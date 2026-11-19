@@ -57,13 +57,36 @@ section[hidden]{display:none!important}
 .analytics-insight{margin-top:16px}.analytics-insight p{margin:7px 0}
 @media(max-width:850px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
 @media(max-width:480px){.analytics-week{gap:4px;padding:10px 4px}.analytics-day small{font-size:.6rem}.analytics-day b{font-size:.65rem}}
-</style></head>
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#assistant">AI Study Assistant</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a><a role="tab" href="#analytics">Progress Analytics</a></div></nav></header>
 <main class="wrap">
 <section class="hero tab-panel" data-tab-panel id="home"><div><div class="tag">CLASS 11 • MATHEMATICS • PHYSICS • CHEMISTRY</div><h1>Make learning<br><em>make sense.</em></h1><p>Explore chapters, revise key formulas, practise questions from easy to hard, and track your learning in one student-friendly hub.</p><a class="btn" href="#daily">Create student profile ↗</a></div><div class="orb">∑</div></section><section id="daily" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR LEARNING</div><h2>Student Profile</h2><p class="muted">Manage your student name.</p></div></div>
 <div class="tool"><h3>Student name</h3><div style="max-width:520px"><label for="studentName">Student name</label><input id="studentName" maxlength="40" autocomplete="name" placeholder="Enter your name" style="width:100%;margin:8px 0"><button class="btn" id="saveStudent" type="button">Save name</button><p id="profileMessage" class="muted" aria-live="polite"></p></div></div>
+<div class="detail-grid" style="margin-top:16px">
+ <div class="detail-card">
+  <span class="pill">CLOUD BACKUP</span><h3>Sync your learning with Supabase</h3>
+  <p class="muted">Create an account or sign in with the same account on another device to sync your profile, practice history and study planner.</p>
+  <p id="supabaseStatus" role="status" class="muted" style="padding:10px;background:#0b1427;border:1px solid var(--line);border-radius:10px;margin:12px 0">Database not connected yet. Add your project details below.</p>
+  <label for="syncEmail">Email address</label><input id="syncEmail" type="email" autocomplete="email" placeholder="Enter your email" style="width:100%;margin:6px 0 10px">
+  <label for="syncPassword">Password</label><input id="syncPassword" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters" style="width:100%;margin:6px 0 10px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" id="supabaseSignUp" type="button">Create sync account</button><button class="btn secondary" id="supabaseSignIn" type="button">Sign in</button><button class="btn secondary" id="supabaseSignOut" type="button" hidden>Sign out</button></div>
+  <p id="supabaseMessage" class="muted" aria-live="polite"></p>
+ </div>
+ <div class="detail-card">
+  <span class="pill">ONE-TIME SETUP</span><h3>Connect your database</h3>
+  <p class="muted">Create a Supabase project, run the SQL setup file from this repository, then paste your Project URL and publishable key here.</p>
+  <details style="margin-top:12px">
+   <summary style="cursor:pointer;color:var(--cyan);font-weight:700">Enter Supabase project details</summary>
+   <label for="supabaseProjectUrl" style="display:block;margin-top:12px">Project URL</label><input id="supabaseProjectUrl" type="url" autocomplete="url" placeholder="https://your-project.supabase.co" style="width:100%;margin:6px 0 10px">
+   <label for="supabasePublishableKey">Publishable key (or legacy anon key)</label><input id="supabasePublishableKey" type="text" autocomplete="off" placeholder="sb_publishable_..." style="width:100%;margin:6px 0 10px">
+   <button class="btn" id="saveSupabaseConfig" type="button">Save and connect</button>
+   <p class="muted" style="font-size:.82rem">Only use the browser-safe publishable/anon key. Never paste a secret or service_role key into this website.</p>
+  </details>
+  <p class="muted" style="font-size:.85rem;margin-top:12px">Setup instructions: open <a href="SUPABASE_SETUP.md" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:underline">SUPABASE_SETUP.md</a> in the repository.</p>
+ </div>
+</div>
 </section><section id="analytics" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR LEARNING, MADE VISIBLE</div><h2>Progress Analytics</h2><p class="muted">See your study activity, practice accuracy and chapters to revisit.</p></div><button class="btn secondary" id="refreshAnalytics" type="button">Refresh data ↻</button></div>
 <div class="analytics-summary grid">
@@ -77,7 +100,7 @@ section[hidden]{display:none!important}
  <div class="tool"><h3>Chapter performance</h3><p class="muted">Based on answers submitted in Question Practice</p><div id="analyticsChapters" class="analytics-chapters"><p class="muted">No practice data yet. Complete a Question Practice round to see chapter insights.</p></div></div>
 </div>
 <div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
-<p class="muted analytics-privacy">Your analytics are calculated in this browser using your saved study log and practice answers. They are not uploaded to a server.</p>
+<p class="muted analytics-privacy">Your analytics use saved browser data. When you connect Supabase and sign in, your profile, practice history and planner tasks sync to your account.</p>
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
 <div class="assistant-shell">
@@ -750,7 +773,7 @@ try{const savedProfile=JSON.parse(localStorage.getItem(profileStoreKey)||'null')
 function studentKey(name){return 'mathverse-study-log:'+encodeURIComponent(name.trim().toLocaleLowerCase())}
 function readStudy(){if(!activeStudent)return [];try{let saved=localStorage.getItem(studentKey(activeStudent));if(!saved){const oldKey='mathverse-study-log:'+activeStudent.toLowerCase().replace(/[^a-z0-9]+/g,'-');saved=localStorage.getItem(oldKey);if(saved)localStorage.setItem(studentKey(activeStudent),saved)}const parsed=JSON.parse(saved||'[]');return Array.isArray(parsed)?parsed:[]}catch{return []}}
 document.querySelector('#studentName').value=profileInfo.name||'';
-document.querySelector('#saveStudent').onclick=()=>{const message=document.querySelector('#profileMessage'),raw=document.querySelector('#studentName').value.trim().replace(/\\s+/g,' ');if(raw.length<2){message.textContent='Please enter a name with at least 2 characters.';document.querySelector('#studentName').focus();return}const oldName=activeStudent;try{const probe='studybuddy-storage-test';localStorage.setItem(probe,'ok');localStorage.removeItem(probe);if(oldName&&oldName.toLowerCase()!==raw.toLowerCase()){const oldData=localStorage.getItem(studentKey(oldName));if(oldData&&!localStorage.getItem(studentKey(raw)))localStorage.setItem(studentKey(raw),oldData)}profileInfo={name:raw};activeStudent=raw;localStorage.setItem(profileStoreKey,JSON.stringify(profileInfo));localStorage.setItem('mathverse-active-student',raw);message.textContent='Name saved successfully on this device.';message.style.color='var(--good,#2f9d68)';renderTodayProgress()}catch(error){message.textContent='Could not save your name. Enable site data/local storage in your browser, then try again.';message.style.color='var(--danger,#d65b5b)'}};
+document.querySelector('#saveStudent').onclick=()=>{const message=document.querySelector('#profileMessage'),raw=document.querySelector('#studentName').value.trim().replace(/\\s+/g,' ');if(raw.length<2){message.textContent='Please enter a name with at least 2 characters.';document.querySelector('#studentName').focus();return}const oldName=activeStudent;try{const probe='studybuddy-storage-test';localStorage.setItem(probe,'ok');localStorage.removeItem(probe);if(oldName&&oldName.toLowerCase()!==raw.toLowerCase()){const oldData=localStorage.getItem(studentKey(oldName));if(oldData&&!localStorage.getItem(studentKey(raw)))localStorage.setItem(studentKey(raw),oldData)}profileInfo={name:raw};activeStudent=raw;localStorage.setItem(profileStoreKey,JSON.stringify(profileInfo));localStorage.setItem('mathverse-active-student',raw);message.textContent='Name saved successfully on this device.';message.style.color='var(--good,#2f9d68)';renderAnalytics()}catch(error){message.textContent='Could not save your name. Enable site data/local storage in your browser, then try again.';message.style.color='var(--danger,#d65b5b)'}};
 document.querySelector('#studentName').addEventListener('keydown',e=>{if(e.key==='Enter')document.querySelector('#saveStudent').click()});
 
 
@@ -1039,4 +1062,338 @@ function renderAnalytics(){
 const analyticsRefresh=document.querySelector('#refreshAnalytics');if(analyticsRefresh)analyticsRefresh.addEventListener('click',renderAnalytics);
 renderAnalytics();
 
+</script><script>
+/* StudyBuddy cloud database integration (Supabase Auth + Postgres with RLS). */
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const configKey = 'studybuddy-supabase-config-v1';
+  const plannerStorageKey = 'studybuddy-custom-planner-tasks-v1';
+  let client = null;
+  let signedInUser = null;
+  let syncing = false;
+
+  function setStatus(message) {
+    const el = $('supabaseStatus');
+    if (el) el.textContent = message;
+  }
+  function setMessage(message, isError) {
+    const el = $('supabaseMessage');
+    if (!el) return;
+    el.textContent = message;
+    el.style.color = isError ? '#ff9a9a' : 'var(--muted)';
+  }
+  function makeId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+    });
+  }
+  function isUuid(value) {
+    return typeof value === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+  }
+  function isoDate(value) {
+    return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : todayISO();
+  }
+  function readConfig() {
+    try {
+      const value = JSON.parse(localStorage.getItem(configKey) || 'null');
+      return value && typeof value.url === 'string' && typeof value.key === 'string' ? value : null;
+    } catch (_) { return null; }
+  }
+  function saveConfig(config) {
+    localStorage.setItem(configKey, JSON.stringify(config));
+  }
+  function setAuthUi() {
+    if ($('supabaseSignUp')) $('supabaseSignUp').hidden = !!signedInUser;
+    if ($('supabaseSignIn')) $('supabaseSignIn').hidden = !!signedInUser;
+    if ($('supabaseSignOut')) $('supabaseSignOut').hidden = !signedInUser;
+    if ($('syncEmail')) $('syncEmail').disabled = !!signedInUser;
+    if ($('syncPassword')) $('syncPassword').disabled = !!signedInUser;
+  }
+  function showLocalOnly() {
+    signedInUser = null;
+    setAuthUi();
+    setStatus(client ? 'Database connected. Sign in to turn on cloud syncing.' : 'Database not connected yet. Add your project details below.');
+  }
+  function persistProfileName(name) {
+    profileInfo = { name: name };
+    activeStudent = name;
+    try {
+      localStorage.setItem(profileStoreKey, JSON.stringify(profileInfo));
+      localStorage.setItem('mathverse-active-student', name);
+    } catch (_) {}
+  }
+  function persistEvents(events) {
+    try { localStorage.setItem(analyticsEventKey, JSON.stringify(events.slice(-5000))); } catch (_) {}
+  }
+  function persistStudy(entries) {
+    if (!activeStudent) return;
+    try { localStorage.setItem(studentKey(activeStudent), JSON.stringify(entries)); } catch (_) {}
+  }
+  function persistTasks(tasks) {
+    try { localStorage.setItem(plannerStorageKey, JSON.stringify(tasks)); } catch (_) {}
+    if (typeof plannerTasks !== 'undefined') plannerTasks = tasks;
+    if (typeof renderPlanner === 'function') renderPlanner();
+  }
+
+  async function syncAllData(user) {
+    if (!client || !user || syncing) return;
+    syncing = true;
+    setStatus('Signed in. Syncing your StudyBuddy data…');
+    try {
+      const profileResult = await client.from('profiles').select('display_name').eq('id', user.id).maybeSingle();
+      if (profileResult.error) throw profileResult.error;
+
+      let name = (typeof activeStudent === 'string' && activeStudent.trim()) ||
+        (profileResult.data && profileResult.data.display_name) ||
+        (user.user_metadata && user.user_metadata.display_name) || '';
+      if (name) {
+        name = name.trim().slice(0, 40);
+        persistProfileName(name);
+        if ($('studentName')) $('studentName').value = name;
+        const saveProfile = await client.from('profiles').upsert({
+          id: user.id,
+          display_name: name,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'id' });
+        if (saveProfile.error) throw saveProfile.error;
+      }
+
+      /* Migrate browser-saved practice answers to the signed-in student's account. */
+      let localEvents = readAnalyticsEvents().map(function (event) {
+        if (!isUuid(event.id)) event.id = makeId();
+        return event;
+      });
+      persistEvents(localEvents);
+      const eventRows = localEvents.map(function (event) {
+        return {
+          id: event.id,
+          user_id: user.id,
+          event_date: isoDate(event.date),
+          subject: String(event.subject || 'Unknown').slice(0, 80),
+          chapter: String(event.chapter || 'Unspecified').slice(0, 160),
+          correct: !!event.correct,
+          question: String(event.question || '').slice(0, 220),
+          created_at: new Date(Number(event.at) || Date.now()).toISOString()
+        };
+      });
+      if (eventRows.length) {
+        const savedEvents = await client.from('practice_events').upsert(eventRows, { onConflict: 'id' });
+        if (savedEvents.error) throw savedEvents.error;
+      }
+
+      /* Preserve any existing local study records and sync them as well. */
+      let localStudy = (typeof readStudy === 'function' ? readStudy() : []).map(function (entry) {
+        if (!isUuid(entry.id)) entry.id = makeId();
+        return entry;
+      });
+      persistStudy(localStudy);
+      const studyRows = localStudy.filter(function (entry) {
+        return Number(entry.minutes) > 0;
+      }).map(function (entry) {
+        return {
+          id: entry.id,
+          user_id: user.id,
+          session_date: isoDate(entry.date),
+          minutes: Math.max(0, Math.min(1440, Math.round(Number(entry.minutes) || 0))),
+          subject: String(entry.subject || 'General').slice(0, 80),
+          chapter: String(entry.chapter || '').slice(0, 160)
+        };
+      });
+      if (studyRows.length) {
+        const savedStudy = await client.from('study_sessions').upsert(studyRows, { onConflict: 'id' });
+        if (savedStudy.error) throw savedStudy.error;
+      }
+
+      /* Planner tasks use stable UUIDs so repeated syncs update instead of duplicate rows. */
+      let localTasks = [];
+      try {
+        localTasks = JSON.parse(localStorage.getItem(plannerStorageKey) || '[]');
+        if (!Array.isArray(localTasks)) localTasks = [];
+      } catch (_) { localTasks = []; }
+      localTasks = localTasks.map(function (task) {
+        if (!isUuid(task.id)) task.id = makeId();
+        return task;
+      });
+      try { localStorage.setItem(plannerStorageKey, JSON.stringify(localTasks)); } catch (_) {}
+      const taskRows = localTasks.map(function (task) {
+        return {
+          id: task.id,
+          user_id: user.id,
+          title: String(task.text || '').slice(0, 240),
+          done: !!task.done
+        };
+      }).filter(function (task) { return task.title.length > 0; });
+      if (taskRows.length) {
+        const savedTasks = await client.from('planner_tasks').upsert(taskRows, { onConflict: 'id' });
+        if (savedTasks.error) throw savedTasks.error;
+      }
+
+      /* Load cloud records and merge by ID, retaining any unsynced local entries. */
+      const results = await Promise.all([
+        client.from('practice_events').select('id,event_date,subject,chapter,correct,question,created_at').order('created_at', { ascending: true }).limit(5000),
+        client.from('study_sessions').select('id,session_date,minutes,subject,chapter').order('session_date', { ascending: true }).limit(5000),
+        client.from('planner_tasks').select('id,title,done').order('created_at', { ascending: true }).limit(2000)
+      ]);
+      for (const result of results) if (result.error) throw result.error;
+
+      const cloudEvents = results[0].data.map(function (row) {
+        return {
+          id: row.id, date: row.event_date, subject: row.subject, chapter: row.chapter,
+          correct: row.correct, question: row.question || '',
+          at: Date.parse(row.created_at) || Date.now()
+        };
+      });
+      const eventMap = new Map();
+      localEvents.forEach(function (item) { eventMap.set(item.id, item); });
+      cloudEvents.forEach(function (item) { eventMap.set(item.id, item); });
+      persistEvents(Array.from(eventMap.values()).sort(function (a, b) { return (a.at || 0) - (b.at || 0); }));
+
+      const cloudStudy = results[1].data.map(function (row) {
+        return { id: row.id, date: row.session_date, minutes: row.minutes, subject: row.subject, chapter: row.chapter };
+      });
+      const studyMap = new Map();
+      localStudy.forEach(function (item) { studyMap.set(item.id, item); });
+      cloudStudy.forEach(function (item) { studyMap.set(item.id, item); });
+      persistStudy(Array.from(studyMap.values()));
+
+      const cloudTasks = results[2].data.map(function (row) {
+        return { id: row.id, text: row.title, done: !!row.done };
+      });
+      const taskMap = new Map();
+      localTasks.forEach(function (item) { taskMap.set(item.id, item); });
+      cloudTasks.forEach(function (item) { taskMap.set(item.id, item); });
+      persistTasks(Array.from(taskMap.values()));
+
+      if (typeof renderAnalytics === 'function') renderAnalytics();
+      setStatus('Connected and synced. Your data is saved to your Supabase account.');
+      setMessage('Cloud sync is active for this signed-in account.', false);
+    } catch (error) {
+      console.error('StudyBuddy Supabase sync failed:', error);
+      setStatus('Signed in, but cloud sync needs attention.');
+      setMessage((error && error.message ? error.message : 'Database request failed') +
+        ' — check that supabase/schema.sql has been run and your project is configured.', true);
+    } finally {
+      syncing = false;
+    }
+  }
+
+  async function connectWithConfig(config) {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      setStatus('Supabase library could not load. Check your internet connection and reload.');
+      return;
+    }
+    if (!config || !/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(config.url) || !config.key) {
+      setStatus('Enter a valid Supabase Project URL and publishable/anon key.');
+      return;
+    }
+    try {
+      client = window.supabase.createClient(config.url.replace(/\/$/, ''), config.key);
+      const sessionResult = await client.auth.getSession();
+      if (sessionResult.error) throw sessionResult.error;
+      if (sessionResult.data.session && sessionResult.data.session.user) {
+        signedInUser = sessionResult.data.session.user;
+        setAuthUi();
+        await syncAllData(signedInUser);
+      } else {
+        showLocalOnly();
+      }
+    } catch (error) {
+      client = null;
+      setStatus('Could not connect to Supabase. Check your Project URL and key.');
+      setMessage(error && error.message ? error.message : 'Connection failed.', true);
+    }
+  }
+
+  const savedConfig = readConfig();
+  if (savedConfig) {
+    if ($('supabaseProjectUrl')) $('supabaseProjectUrl').value = savedConfig.url;
+    if ($('supabasePublishableKey')) $('supabasePublishableKey').value = savedConfig.key;
+    connectWithConfig(savedConfig);
+  } else {
+    showLocalOnly();
+  }
+
+  if ($('saveSupabaseConfig')) $('saveSupabaseConfig').addEventListener('click', async function () {
+    const url = ($('supabaseProjectUrl').value || '').trim();
+    const key = ($('supabasePublishableKey').value || '').trim();
+    if (!/^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(url) || !key) {
+      setMessage('Please enter your Supabase Project URL and publishable/anon key.', true);
+      return;
+    }
+    try {
+      saveConfig({ url: url.replace(/\/$/, ''), key: key });
+      await connectWithConfig({ url: url.replace(/\/$/, ''), key: key });
+      setMessage('Project details saved in this browser. Now create an account or sign in.', false);
+    } catch (error) {
+      setMessage(error.message || 'Could not save the connection details.', true);
+    }
+  });
+
+  if ($('supabaseSignUp')) $('supabaseSignUp').addEventListener('click', async function () {
+    if (!client) { setMessage('Connect your Supabase project first.', true); return; }
+    const email = ($('syncEmail').value || '').trim();
+    const password = $('syncPassword').value || '';
+    const name = ($('studentName').value || '').trim().replace(/\s+/g, ' ');
+    if (name.length < 2) { setMessage('Save a student name with at least 2 characters first.', true); return; }
+    if (!email || password.length < 8) { setMessage('Enter a valid email address and a password with at least 8 characters.', true); return; }
+    setMessage('Creating your secure sync account…', false);
+    const result = await client.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { display_name: name } }
+    });
+    if (result.error) { setMessage(result.error.message, true); return; }
+    if (result.data.session && result.data.user) {
+      signedInUser = result.data.user;
+      setAuthUi();
+      await syncAllData(signedInUser);
+    } else {
+      setMessage('Account created. Check your email for the confirmation link, then return here and sign in.', false);
+    }
+  });
+
+  if ($('supabaseSignIn')) $('supabaseSignIn').addEventListener('click', async function () {
+    if (!client) { setMessage('Connect your Supabase project first.', true); return; }
+    const email = ($('syncEmail').value || '').trim();
+    const password = $('syncPassword').value || '';
+    if (!email || !password) { setMessage('Enter your account email and password.', true); return; }
+    setMessage('Signing in…', false);
+    const result = await client.auth.signInWithPassword({ email: email, password: password });
+    if (result.error) { setMessage(result.error.message, true); return; }
+    signedInUser = result.data.user;
+    setAuthUi();
+    await syncAllData(signedInUser);
+  });
+
+  if ($('supabaseSignOut')) $('supabaseSignOut').addEventListener('click', async function () {
+    if (!client) return;
+    const result = await client.auth.signOut();
+    if (result.error) { setMessage(result.error.message, true); return; }
+    signedInUser = null;
+    setAuthUi();
+    showLocalOnly();
+    setMessage('Signed out. A copy of this device’s saved data remains in this browser.', false);
+  });
+
+  /* Keep cloud copies updated when the student answers questions or edits planner tasks. */
+  if (typeof recordStudyBuddyAnswer === 'function') {
+    const originalRecordAnswer = recordStudyBuddyAnswer;
+    recordStudyBuddyAnswer = function (answer) {
+      originalRecordAnswer(answer);
+      if (signedInUser) syncAllData(signedInUser);
+    };
+  }
+  if (typeof savePlanner === 'function') {
+    const originalSavePlanner = savePlanner;
+    savePlanner = function () {
+      originalSavePlanner();
+      if (signedInUser) syncAllData(signedInUser);
+    };
+  }
+  if ($('saveStudent')) $('saveStudent').addEventListener('click', function () {
+    if (signedInUser) syncAllData(signedInUser);
+  });
+})();
 </script></body></html>
