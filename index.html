@@ -57,6 +57,9 @@ section[hidden]{display:none!important}
 .analytics-insight{margin-top:16px}.analytics-insight p{margin:7px 0}
 @media(max-width:850px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
 @media(max-width:480px){.analytics-week{gap:4px;padding:10px 4px}.analytics-day small{font-size:.6rem}.analytics-day b{font-size:.65rem}}
+
+/* Automatic inactivity logout */
+.session-timeout-card{margin-top:16px}.session-warning{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#050914cc;backdrop-filter:blur(7px)}.session-warning[hidden]{display:none!important}.session-warning-panel{width:min(460px,100%);padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px #0008}.session-warning-panel h2{margin:0 0 8px}.session-warning-panel p{color:var(--muted)}.session-warning-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.session-warning-countdown{font-size:1.8rem;font-weight:900;color:var(--cyan);font-variant-numeric:tabular-nums}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#assistant">AI Study Assistant</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a><a role="tab" href="#analytics">Progress Analytics</a></div></nav></header>
@@ -81,6 +84,17 @@ section[hidden]{display:none!important}
   <p class="muted" style="font-size:.85rem;margin-top:12px">Your account is protected by Supabase authentication and database row-level security.</p>
   <p class="muted" style="font-size:.85rem;margin-top:12px">Setup instructions: open <a href="SUPABASE_SETUP.md" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:underline">SUPABASE_SETUP.md</a> in the repository.</p>
  </div>
+
+<div class="detail-card session-timeout-card">
+ <span class="pill">ACCOUNT SECURITY</span><h3>Automatic logout</h3>
+ <p class="muted">Choose how long StudyBuddy can stay inactive before signing you out. You will get a 2-minute warning first.</p>
+ <label for="sessionTimeoutChoice">Log out after inactivity</label>
+ <select id="sessionTimeoutChoice" style="width:100%;margin:8px 0" aria-describedby="sessionTimeoutHelp">
+  <option value="30">30 minutes</option><option value="60">1 hour</option>
+ </select>
+ <p id="sessionTimeoutHelp" class="muted" style="font-size:.85rem;margin:4px 0">This setting applies to this browser. Any activity resets the countdown.</p>
+ <p id="sessionTimeoutStatus" class="muted" role="status" aria-live="polite"></p>
+</div>
 </div>
 </section><section id="analytics" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR LEARNING, MADE VISIBLE</div><h2>Progress Analytics</h2><p class="muted">See your study activity, practice accuracy and chapters to revisit.</p></div><button class="btn secondary" id="refreshAnalytics" type="button">Refresh data ↻</button></div>
@@ -1389,6 +1403,119 @@ renderAnalytics();
     }
   }
 
+
+  /* Session inactivity timeout: the selected duration is shared across tabs on this browser. */
+  const timeoutPreferenceKey = 'studybuddy-session-timeout-minutes-v1';
+  const timeoutWarning = $('sessionTimeoutWarning');
+  const timeoutChoice = $('sessionTimeoutChoice');
+  const timeoutStatus = $('sessionTimeoutStatus');
+  const timeoutCountdown = $('sessionWarningCountdown');
+  let inactivityInterval = null;
+  let lastActivityWrite = 0;
+  let activityStorageKey = '';
+  let warningVisible = false;
+
+  function selectedTimeoutMs() {
+    const saved = localStorage.getItem(timeoutPreferenceKey);
+    return (saved === '60' ? 60 : 30) * 60 * 1000;
+  }
+  function showTimeoutWarning(show) {
+    warningVisible = !!show;
+    if (timeoutWarning) timeoutWarning.hidden = !warningVisible;
+  }
+  function recordSessionActivity(force) {
+    if (!signedInUser || !activityStorageKey) return;
+    const now = Date.now();
+    if (force || now - lastActivityWrite > 3000) {
+      lastActivityWrite = now;
+      try { localStorage.setItem(activityStorageKey, String(now)); } catch (_) {}
+    }
+    if (warningVisible) showTimeoutWarning(false);
+  }
+  function getLastActivity() {
+    try {
+      const value = Number(localStorage.getItem(activityStorageKey));
+      return Number.isFinite(value) && value > 0 ? value : Date.now();
+    } catch (_) { return Date.now(); }
+  }
+  async function endSessionForTimeout(manual) {
+    if (!signedInUser || !client) return;
+    if (inactivityInterval) { clearInterval(inactivityInterval); inactivityInterval = null; }
+    showTimeoutWarning(false);
+    const expiredUser = signedInUser;
+    try {
+      const result = await client.auth.signOut({ scope: 'local' });
+      if (result.error) throw result.error;
+    } catch (error) {
+      /* Retry local-scope sign-out; never leave this page treating the user as authenticated. */
+      try { await client.auth.signOut({ scope: 'local' }); } catch (_) {}
+      console.warn('StudyBuddy local sign-out reported an issue:', error);
+    }
+    signedInUser = null;
+    activityStorageKey = '';
+    activateGuestLocalState();
+    setAuthUi();
+    if ($('syncEmail')) $('syncEmail').value = '';
+    if ($('syncPassword')) $('syncPassword').value = '';
+    showLocalOnly();
+    setMessage(manual ? 'You have been signed out securely.' : 'You were signed out after being inactive. Sign in again to continue.', false);
+    if (timeoutStatus) timeoutStatus.textContent = 'Your session has ended. Sign in again to continue.';
+    try { localStorage.removeItem('studybuddy-last-activity:' + expiredUser.id); } catch (_) {}
+  }
+  function checkInactivityDeadline() {
+    if (!signedInUser || !activityStorageKey) return;
+    const remaining = selectedTimeoutMs() - (Date.now() - getLastActivity());
+    if (remaining <= 0) {
+      endSessionForTimeout(false);
+      return;
+    }
+    if (remaining <= 120000) {
+      showTimeoutWarning(true);
+      if (timeoutCountdown) {
+        const seconds = Math.max(0, Math.ceil(remaining / 1000));
+        timeoutCountdown.textContent = String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0');
+      }
+    } else if (warningVisible) {
+      showTimeoutWarning(false);
+    }
+  }
+  function startSessionTimeout() {
+    if (inactivityInterval) clearInterval(inactivityInterval);
+    showTimeoutWarning(false);
+    if (!signedInUser) return;
+    activityStorageKey = 'studybuddy-last-activity:' + signedInUser.id;
+    lastActivityWrite = Date.now();
+    try { localStorage.setItem(activityStorageKey, String(lastActivityWrite)); } catch (_) {}
+    if (timeoutChoice) timeoutChoice.value = localStorage.getItem(timeoutPreferenceKey) === '60' ? '60' : '30';
+    if (timeoutStatus) timeoutStatus.textContent = 'Your session will end after ' + (selectedTimeoutMs() / 60000) + ' minutes without activity.';
+    inactivityInterval = setInterval(checkInactivityDeadline, 1000);
+  }
+  ['pointerdown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(function (eventName) {
+    document.addEventListener(eventName, function () { recordSessionActivity(false); }, { passive: true });
+  });
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) checkInactivityDeadline();
+  });
+  window.addEventListener('storage', function (event) {
+    if (event.key === activityStorageKey && event.newValue) {
+      lastActivityWrite = Number(event.newValue) || Date.now();
+      if (warningVisible) showTimeoutWarning(false);
+    }
+  });
+  if (timeoutChoice) timeoutChoice.addEventListener('change', function () {
+    const value = timeoutChoice.value === '60' ? '60' : '30';
+    try { localStorage.setItem(timeoutPreferenceKey, value); } catch (_) {}
+    if (signedInUser) startSessionTimeout();
+    else if (timeoutStatus) timeoutStatus.textContent = 'Your selected timeout is ' + (value === '60' ? '1 hour' : '30 minutes') + '. It will apply when you sign in.';
+  });
+  if ($('sessionStaySignedIn')) $('sessionStaySignedIn').addEventListener('click', function () {
+    recordSessionActivity(true);
+    showTimeoutWarning(false);
+  });
+  if ($('sessionSignOutNow')) $('sessionSignOutNow').addEventListener('click', function () {
+    endSessionForTimeout(true);
+  });
+
   async function connectToSharedDatabase() {
     if (!window.supabase || typeof window.supabase.createClient !== 'function') {
       setStatus('Supabase library could not load. Check your internet connection and reload.');
@@ -1402,6 +1529,7 @@ renderAnalytics();
         activateAccountLocalState(sessionResult.data.session.user.id);
         signedInUser = sessionResult.data.session.user;
         setAuthUi();
+        startSessionTimeout();
         await syncAllData(signedInUser);
       } else {
         showLocalOnly();
@@ -1434,6 +1562,7 @@ renderAnalytics();
       activateAccountLocalState(result.data.user.id);
       signedInUser = result.data.user;
       setAuthUi();
+      startSessionTimeout();
       await syncAllData(signedInUser);
     } else {
       setMessage('Account created. Check your email for the confirmation link, then return here and sign in.', false);
@@ -1451,6 +1580,7 @@ renderAnalytics();
     activateAccountLocalState(result.data.user.id);
     signedInUser = result.data.user;
     setAuthUi();
+    startSessionTimeout();
     await syncAllData(signedInUser);
   });
 
@@ -1459,6 +1589,9 @@ renderAnalytics();
     const result = await client.auth.signOut();
     if (result.error) { setMessage(result.error.message, true); return; }
     signedInUser = null;
+    if (inactivityInterval) { clearInterval(inactivityInterval); inactivityInterval = null; }
+    showTimeoutWarning(false);
+    activityStorageKey = '';
     activateGuestLocalState();
     setAuthUi();
     showLocalOnly();
@@ -1526,4 +1659,13 @@ renderAnalytics();
     }
   });
 })();
-</script></body></html>
+</script>
+<div id="sessionTimeoutWarning" class="session-warning" role="dialog" aria-modal="true" aria-labelledby="sessionWarningTitle" aria-describedby="sessionWarningText" hidden>
+ <div class="session-warning-panel">
+  <span class="pill">SESSION SECURITY</span><h2 id="sessionWarningTitle">Are you still there?</h2>
+  <p id="sessionWarningText">You will be signed out soon because of inactivity.</p>
+  <div class="session-warning-countdown" id="sessionWarningCountdown" aria-live="off">02:00</div>
+  <div class="session-warning-actions"><button class="btn" id="sessionStaySignedIn" type="button">Stay signed in</button><button class="btn secondary" id="sessionSignOutNow" type="button">Sign out now</button></div>
+ </div>
+</div>
+</body></html>
