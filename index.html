@@ -1482,8 +1482,48 @@ renderAnalytics();
       if (signedInUser) syncAllData(signedInUser);
     };
   }
-  if ($('saveStudent')) $('saveStudent').addEventListener('click', function () {
-    if (signedInUser) syncAllData(signedInUser);
+  if ($('saveStudent')) $('saveStudent').addEventListener('click', async function () {
+    /* This button uploads only the student name; it must not trigger a full data sync. */
+    const name = String(($('studentName') && $('studentName').value) || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+    const profileMessage = $('profileMessage');
+    if (name.length < 2) return;
+    if (!client) {
+      if (profileMessage) {
+        profileMessage.textContent = 'Your name is saved on this device. Supabase is not connected yet.';
+        profileMessage.style.color = 'var(--danger,#d65b5b)';
+      }
+      return;
+    }
+    if (!signedInUser) {
+      if (profileMessage) {
+        profileMessage.textContent = 'Your name is saved on this device. Sign in to your StudyBuddy account to upload only this name to Supabase.';
+        profileMessage.style.color = 'var(--muted,#9aaccb)';
+      }
+      return;
+    }
+    if (profileMessage) {
+      profileMessage.textContent = 'Uploading your student name to Supabase…';
+      profileMessage.style.color = 'var(--muted,#9aaccb)';
+    }
+    try {
+      const result = await client.from('profiles').upsert({
+        id: signedInUser.id,
+        display_name: name,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'id' });
+      if (result.error) throw result.error;
+      persistProfileName(name);
+      if (profileMessage) {
+        profileMessage.textContent = 'Student name saved successfully to your Supabase account.';
+        profileMessage.style.color = 'var(--good,#2f9d68)';
+      }
+    } catch (error) {
+      console.error('StudyBuddy profile upload failed:', error);
+      if (profileMessage) {
+        profileMessage.textContent = 'Name is saved on this device, but Supabase upload failed: ' + (error.message || 'Database error');
+        profileMessage.style.color = 'var(--danger,#d65b5b)';
+      }
+    }
   });
 })();
 </script></body></html>
