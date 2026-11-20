@@ -61,21 +61,7 @@ section[hidden]{display:none!important}
 
 /* Automatic inactivity logout */
 .session-timeout-card{margin-top:16px}.session-warning{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#050914cc;backdrop-filter:blur(7px)}.session-warning[hidden]{display:none!important}.session-warning-panel{width:min(460px,100%);padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px #0008}.session-warning-panel h2{margin:0 0 8px}.session-warning-panel p{color:var(--muted)}.session-warning-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.session-warning-countdown{font-size:1.8rem;font-weight:900;color:var(--cyan);font-variant-numeric:tabular-nums}
-</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
-.principal-report{background:#fff;color:#172033;padding:28px;max-width:900px;margin:20px auto;border-radius:12px;font-family:Arial,sans-serif;line-height:1.5}
-.principal-report h1{font-size:25px;margin:4px 0}.principal-report h2{font-size:17px;margin:22px 0 8px;border-bottom:1px solid #d8deea;padding-bottom:6px}
-.principal-report p{margin:7px 0}.report-kicker{font-size:11px;letter-spacing:2px;font-weight:bold;color:#52627b}.report-header{border-bottom:2px solid #253653;padding-bottom:14px}
-.report-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
-.report-metrics div{border:1px solid #d8deea;border-radius:8px;padding:12px;min-width:0}.report-metrics b,.report-metrics span{display:block}.report-metrics b{font-size:21px;overflow-wrap:anywhere}.report-metrics span{font-size:12px;color:#536078;margin-top:4px}
-.principal-report table{width:100%;border-collapse:collapse}.principal-report th,.principal-report td{text-align:left;padding:8px;border-bottom:1px solid #d8deea}.report-footer{margin-top:25px!important;color:#64748b;font-size:11px}
-@media(max-width:600px){.report-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media print{
- @page{size:A4;margin:14mm}
- body.printing-principal-report *{visibility:hidden!important}
- body.printing-principal-report #principalReport,body.printing-principal-report #principalReport *{visibility:visible!important}
- body.printing-principal-report #principalReport{display:block!important;position:absolute;left:0;top:0;width:100%;max-width:none;margin:0;padding:0;border-radius:0}
-}
-</style></head>
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
 <body>
 <header data-studybuddy-tabs="v1"><nav class="wrap"><a class="brand" href="#home">∑ <span>StudyBuddy</span></a><div class="links" role="tablist" aria-label="StudyBuddy sections"><a role="tab" href="#home">Home</a><a role="tab" href="#daily">Student Profile</a><a role="tab" href="#planner">Study Planner</a><a role="tab" href="#assistant">AI Study Assistant</a><a role="tab" href="#subjects">Subjects</a><a role="tab" href="#practice">Question Practice</a><a role="tab" href="#revision">Revision Centre</a><a role="tab" href="#learning">Projects</a><a role="tab" href="#lab">X–Y Graph</a><a role="tab" href="#projectile">Projectile Lab</a><a role="tab" href="#reaction-machine">Reaction Lab</a><a role="tab" href="#analytics">Progress Analytics</a></div></nav></header>
 <main class="wrap">
@@ -112,7 +98,7 @@ section[hidden]{display:none!important}
 </div>
 </div>
 </section><section id="analytics" class="tab-panel" data-tab-panel>
-<div class="heading"><div><div class="tag">YOUR LEARNING, MADE VISIBLE</div><h2>Progress Analytics</h2><p class="muted">See your study activity, practice accuracy and chapters to revisit.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary" id="refreshAnalytics" type="button">Refresh data ↻</button><button class="btn" id="printPrincipalReport" type="button">Generate Principal Report ↗</button></div></div>
+<div class="heading"><div><div class="tag">YOUR LEARNING, MADE VISIBLE</div><h2>Progress Analytics</h2><p class="muted">See your study activity, practice accuracy and chapters to revisit.</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary" id="refreshAnalytics" type="button">Refresh data ↻</button></div></div>
 <div class="analytics-summary grid">
  <div class="card"><span class="pill">STUDY TIME • 7 DAYS</span><h2 id="analyticsMinutes">0 min</h2><p>Recorded study time</p></div>
  <div class="card"><span class="pill">PRACTICE QUESTIONS • 7 DAYS</span><h2 id="analyticsQuestions">0</h2><p>Questions answered in practice</p></div>
@@ -135,7 +121,7 @@ section[hidden]{display:none!important}
 </div>
 <div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
 <p class="muted analytics-privacy">Usage analytics are recorded from real app sessions, visible time and section visits for the selected student profile on this browser. They are not fabricated and are not a school-wide visitor count. Learning records such as practice answers and saved study sessions sync to Supabase when signed in; app-usage totals currently remain on this browser.</p>
-<section id="principalReport" class="principal-report" hidden aria-label="Printable principal report"></section>
+
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
 <div class="assistant-shell">
@@ -1151,39 +1137,6 @@ function renderAnalytics(){
  messages.forEach(message=>{const p=document.createElement('p');p.textContent='• '+message;insights.append(p)});
 }
 const analyticsRefresh=document.querySelector('#refreshAnalytics');if(analyticsRefresh)analyticsRefresh.addEventListener('click',renderAnalytics);
-function buildPrincipalReport(){
- const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
- const study=readStudy(),answers=readAnalyticsEvents(),usage=readUsage();
- const totalStudyMinutes=study.reduce((sum,item)=>sum+Math.max(0,Number(item.minutes)||0),0);
- const correct=answers.filter(item=>item.correct).length;
- const days=new Set([...study.map(item=>item.date),...answers.map(item=>item.date)].filter(Boolean));
- const sectionNames={home:'Home',daily:'Student Profile',planner:'Study Planner',assistant:'Study Assistant',subjects:'Subjects',practice:'Question Practice',revision:'Revision Centre',learning:'Projects',lab:'X–Y Graph',projectile:'Projectile Lab','reaction-machine':'Reaction Lab'};
- const used=(usage.sections||[]).map(id=>sectionNames[id]||id);
- const last=usage.lastActive?new Date(usage.lastActive):null;
- const generated=new Date().toLocaleString();
- const weekRows=[];
- for(let offset=6;offset>=0;offset--){
-  const date=new Date();date.setHours(12,0,0,0);date.setDate(date.getDate()-offset);
-  const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
-  const mins=study.filter(item=>item.date===key).reduce((n,item)=>n+Math.max(0,Number(item.minutes)||0),0);
-  const qs=answers.filter(item=>item.date===key).length;
-  weekRows.push('<tr><td>'+escapeHtml(date.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))+'</td><td>'+mins+' min</td><td>'+qs+'</td></tr>');
- }
- const report=document.getElementById('principalReport');
- report.innerHTML='<div class="report-header"><div class="report-kicker">STUDYBUDDY • LEARNING PLATFORM</div><h1>Student Usage & Learning Progress Report</h1><p>Generated: '+escapeHtml(generated)+'</p></div>'+
- '<h2>Student & report details</h2><p><b>Student profile:</b> '+escapeHtml(activeStudent||'Guest profile')+'</p><p><b>Reporting scope:</b> This browser and the currently selected student profile</p>'+
- '<h2>App engagement</h2><div class="report-metrics"><div><b>'+Number(usage.sessions||0)+'</b><span>App sessions recorded</span></div><div><b>'+Math.floor((Number(usage.seconds)||0)/60)+' min</b><span>App visible time</span></div><div><b>'+used.length+' / '+usageSections.length+'</b><span>Features visited</span></div><div><b>'+escapeHtml(last&&!Number.isNaN(last.getTime())?last.toLocaleString():'Not recorded')+'</b><span>Last active</span></div></div>'+
- '<h2>Learning activity</h2><div class="report-metrics"><div><b>'+totalStudyMinutes+' min</b><span>Total saved study time</span></div><div><b>'+answers.length+'</b><span>Practice questions answered</span></div><div><b>'+(answers.length?Math.round(correct/answers.length*100)+'%':'—')+'</b><span>Practice accuracy</span></div><div><b>'+days.size+'</b><span>Days with saved study or practice activity</span></div></div>'+
- '<h2>Features visited</h2><p>'+(used.length?used.map(escapeHtml).join(' • '):'No feature visits recorded yet')+'</p>'+
- '<h2>Feature visit counts</h2><table><thead><tr><th>StudyBuddy feature</th><th>Visits</th></tr></thead><tbody>'+usageSections.map(id=>({name:sectionNames[id]||id,count:Math.max(0,Number(usage.sectionVisits&&usage.sectionVisits[id])||0)})).filter(item=>item.count>0).sort((a,b)=>b.count-a.count).map(item=>'<tr><td>'+escapeHtml(item.name)+'</td><td>'+item.count+'</td></tr>').join('')+'</tbody></table>'+
- '<h2>App activity • last 7 days</h2><table><thead><tr><th>Day</th><th>App visible time</th><th>Sessions</th></tr></thead><tbody>'+Array.from({length:7},(_,index)=>{const date=new Date();date.setHours(12,0,0,0);date.setDate(date.getDate()-(6-index));const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');const day=usage.daily&&usage.daily[key]||{};return '<tr><td>'+escapeHtml(date.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))+'</td><td>'+Math.round((Number(day.seconds)||0)/60)+' min</td><td>'+Math.max(0,Number(day.sessions)||0)+'</td></tr>'}).join('')+'</tbody></table>'+
- '<h2>Learning activity • last 7 days</h2><table><thead><tr><th>Day</th><th>Study time</th><th>Questions</th></tr></thead><tbody>'+weekRows.join('')+'</tbody></table>'+
- '<h2>Report interpretation</h2><p>This report uses activity currently saved in this browser for the selected profile. It is not a count of all website visitors or all students across devices. For a school-wide usage report, usage events must be collected centrally in the connected database and aggregated across student accounts.</p>'+
- '<p class="report-footer">StudyBuddy • Automatically generated from recorded app and learning activity</p>';
- report.hidden=false;
-}
-const printReportButton=document.getElementById('printPrincipalReport');
-if(printReportButton)printReportButton.addEventListener('click',()=>{buildPrincipalReport();document.body.classList.add('printing-principal-report');window.print();document.body.classList.remove('printing-principal-report')});
 renderAnalytics();
 
 </script><script>
