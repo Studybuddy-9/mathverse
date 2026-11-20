@@ -116,7 +116,6 @@ section[hidden]{display:none!important}
  <div class="tool"><h3>Most visited features</h3><p class="muted">Real section visits recorded for this student profile</p><div id="usageFeatureVisits"><p class="muted">Feature visits will appear as students explore StudyBuddy.</p></div></div>
 </div>
 <div class="analytics-layout">
- <div class="tool"><h3>Last 7 days</h3><p class="muted">Recorded study minutes by day</p><div id="analyticsWeek" class="analytics-week" aria-label="Study minutes chart"></div><p class="muted analytics-footnote">Study time uses sessions already saved in your Student Profile on this browser.</p></div>
  <div class="tool"><h3>Chapter performance</h3><p class="muted">Based on answers submitted in Question Practice</p><div id="analyticsChapters" class="analytics-chapters"><p class="muted">No practice data yet. Complete a Question Practice round to see chapter insights.</p></div></div>
 </div>
 <div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
@@ -1093,8 +1092,8 @@ window.addEventListener('hashchange',recordCurrentSection);
 document.addEventListener('visibilitychange',()=>{usageLastTick=Date.now();if(!document.hidden)recordCurrentSection()});
 window.addEventListener('pagehide',saveUsage);
 function renderAnalytics(){
- const week=document.querySelector('#analyticsWeek'),chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
- if(!week||!chaptersBox||!insights)return;
+ const chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
+ if(!chaptersBox||!insights)return;
  const now=new Date(),days=[];
  for(let offset=6;offset>=0;offset--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-offset,12);days.push({date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),label:d.toLocaleDateString(undefined,{weekday:'short'}),minutes:0,questions:0,correct:0})}
  const allStudy=readStudy(),events=readAnalyticsEvents(),byDate=new Map(days.map(d=>[d.date,d]));
@@ -1108,16 +1107,6 @@ function renderAnalytics(){
  set('analyticsAccuracyNote',totalQuestions?totalCorrect+' correct out of '+totalQuestions+' answered':'Answer questions to see accuracy');
  set('analyticsActiveDays',active+' / 7');
   renderUsageAnalytics();
- week.innerHTML='';
- const maxMinutes=Math.max(30,...days.map(d=>d.minutes));
- days.forEach(day=>{
-  const col=document.createElement('div');col.className='analytics-day';
-  const value=document.createElement('small');value.textContent=day.minutes+'m';
-  const track=document.createElement('div');track.className='analytics-bar-track';track.title=day.date+': '+day.minutes+' study minutes';
-  const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(day.minutes?Math.max(5,day.minutes/maxMinutes*100):0)+'%';track.append(bar);
-  const label=document.createElement('b');label.textContent=day.label;
-  col.append(value,track,label);week.append(col);
- });
  const chapterMap=new Map();
  events.forEach(event=>{const key=(event.subject||'Unknown')+' • '+(event.chapter||'Unspecified');const item=chapterMap.get(key)||{name:key,total:0,correct:0};item.total++;if(event.correct)item.correct++;chapterMap.set(key,item)});
  const performance=[...chapterMap.values()].sort((a,b)=>b.total-a.total);
