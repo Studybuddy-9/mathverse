@@ -55,6 +55,7 @@ section[hidden]{display:none!important}
 .analytics-meter{height:8px;background:#0b1427;border-radius:20px;overflow:hidden;margin-top:8px}
 .analytics-meter span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#68e1fd,#a99bff)}
 .analytics-insight{margin-top:16px}.analytics-insight p{margin:7px 0}
+#usageWeek .analytics-day{height:160px}#usageFeatureVisits .analytics-chapter{padding:9px 0}
 @media(max-width:850px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
 @media(max-width:480px){.analytics-week{gap:4px;padding:10px 4px}.analytics-day small{font-size:.6rem}.analytics-day b{font-size:.65rem}}
 
@@ -125,11 +126,15 @@ section[hidden]{display:none!important}
  <div class="card"><span class="pill">LAST ACTIVE</span><h2 id="usageLastActive" style="font-size:1.25rem">Not yet</h2><p>Most recent recorded activity</p></div>
 </div>
 <div class="analytics-layout">
+ <div class="tool"><h3>App activity • last 7 days</h3><p class="muted">Time StudyBuddy was open and visible in this browser</p><div id="usageWeek" class="analytics-week" aria-label="Daily app activity chart"></div><p class="muted analytics-footnote">Bars show recorded active minutes; labels show each day. A session is counted when this profile opens the app.</p></div>
+ <div class="tool"><h3>Most visited features</h3><p class="muted">Real section visits recorded for this student profile</p><div id="usageFeatureVisits"><p class="muted">Feature visits will appear as students explore StudyBuddy.</p></div></div>
+</div>
+<div class="analytics-layout">
  <div class="tool"><h3>Last 7 days</h3><p class="muted">Recorded study minutes by day</p><div id="analyticsWeek" class="analytics-week" aria-label="Study minutes chart"></div><p class="muted analytics-footnote">Study time uses sessions already saved in your Student Profile on this browser.</p></div>
  <div class="tool"><h3>Chapter performance</h3><p class="muted">Based on answers submitted in Question Practice</p><div id="analyticsChapters" class="analytics-chapters"><p class="muted">No practice data yet. Complete a Question Practice round to see chapter insights.</p></div></div>
 </div>
 <div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
-<p class="muted analytics-privacy">Your analytics use saved browser data. When you connect Supabase and sign in, your profile, practice history and planner tasks sync to your account.</p>
+<p class="muted analytics-privacy">Usage analytics are recorded from real app sessions, visible time and section visits for the selected student profile on this browser. They are not fabricated and are not a school-wide visitor count. Learning records such as practice answers and saved study sessions sync to Supabase when signed in; app-usage totals currently remain on this browser.</p>
 <section id="principalReport" class="principal-report" hidden aria-label="Printable principal report"></section>
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
@@ -1046,12 +1051,26 @@ function recordStudyBuddyAnswer(answer){
 }
 /* Real app usage analytics: record page opens, visible time and sections visited. */
 const usageSections=['home','daily','planner','assistant','subjects','practice','revision','learning','lab','projectile','reaction-machine'];
+const usageSectionNames={home:'Home',daily:'Student Profile',planner:'Study Planner',assistant:'Study Assistant',subjects:'Subjects',practice:'Question Practice',revision:'Revision Centre',learning:'Projects',lab:'X–Y Graph',projectile:'Projectile Lab','reaction-machine':'Reaction Lab'};
 function usageKey(){return 'studybuddy-app-usage:'+encodeURIComponent((activeStudent||'guest').trim().toLocaleLowerCase())}
-function readUsage(){try{const v=JSON.parse(localStorage.getItem(usageKey())||'null');return v&&typeof v==='object'?v:{sessions:0,seconds:0,sections:[],lastActive:null}}catch{return {sessions:0,seconds:0,sections:[],lastActive:null}}}
+function readUsage(){
+ try{
+  const value=JSON.parse(localStorage.getItem(usageKey())||'null');
+  const data=value&&typeof value==='object'?value:{};
+  data.sessions=Math.max(0,Number(data.sessions)||0);data.seconds=Math.max(0,Number(data.seconds)||0);
+  data.sections=Array.isArray(data.sections)?data.sections:[];
+  data.sectionVisits=data.sectionVisits&&typeof data.sectionVisits==='object'?data.sectionVisits:{};
+  data.daily=data.daily&&typeof data.daily==='object'?data.daily:{};
+  return data;
+ }catch{return {sessions:0,seconds:0,sections:[],sectionVisits:{},daily:{},lastActive:null}}
+}
 let appUsage=readUsage();
-appUsage.sessions=(Number(appUsage.sessions)||0)+1;
-function saveUsage(){try{appUsage.lastActive=new Date().toISOString();localStorage.setItem(usageKey(),JSON.stringify(appUsage))}catch(error){console.warn('Usage analytics save failed:',error)}}
-function recordSectionUsage(id){if(usageSections.includes(id)&&!appUsage.sections.includes(id)){appUsage.sections.push(id);saveUsage()}}
+function usageDay(){return todayISO()}
+function ensureUsageDay(date){if(!appUsage.daily[date])appUsage.daily[date]={seconds:0,sessions:0};return appUsage.daily[date]}
+appUsage.sessions++;
+ensureUsageDay(usageDay()).sessions++;
+function saveUsage(){try{appUsage.lastActive=new Date().toISOString();const day=ensureUsageDay(usageDay());day.lastActive=appUsage.lastActive;const cutoff=new Date();cutoff.setDate(cutoff.getDate()-29);Object.keys(appUsage.daily).forEach(key=>{if(key<cutoff.toISOString().slice(0,10))delete appUsage.daily[key]});localStorage.setItem(usageKey(),JSON.stringify(appUsage))}catch(error){console.warn('Usage analytics save failed:',error)}}
+function recordSectionUsage(id){if(!usageSections.includes(id))return;if(!appUsage.sections.includes(id))appUsage.sections.push(id);appUsage.sectionVisits[id]=Math.max(0,Number(appUsage.sectionVisits[id])||0)+1;saveUsage()}
 function renderUsageAnalytics(){
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
  const total=Math.max(0,Number(appUsage.seconds)||0),hours=Math.floor(total/3600),mins=Math.floor(total%3600/60);
@@ -1060,9 +1079,22 @@ function renderUsageAnalytics(){
  set('usageFeatures',(appUsage.sections||[]).length+' / '+usageSections.length);
  const last=appUsage.lastActive?new Date(appUsage.lastActive):null;
  set('usageLastActive',last&&!Number.isNaN(last.getTime())?last.toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'Not yet');
+ const chart=document.getElementById('usageWeek'),features=document.getElementById('usageFeatureVisits');
+ if(chart){
+  chart.innerHTML='';
+  const rows=[];for(let offset=6;offset>=0;offset--){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const day=appUsage.daily[key]||{};rows.push({label:d.toLocaleDateString(undefined,{weekday:'short'}),seconds:Math.max(0,Number(day.seconds)||0),sessions:Math.max(0,Number(day.sessions)||0)})}
+  const max=Math.max(600,...rows.map(x=>x.seconds));
+  rows.forEach(item=>{const col=document.createElement('div');col.className='analytics-day';const value=document.createElement('small');value.textContent=Math.round(item.seconds/60)+'m';const track=document.createElement('div');track.className='analytics-bar-track';track.title=item.label+': '+Math.round(item.seconds/60)+' active minutes, '+item.sessions+' sessions';const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(item.seconds?Math.max(5,item.seconds/max*100):0)+'%';track.append(bar);const label=document.createElement('b');label.textContent=item.label;col.append(value,track,label);chart.append(col)});
+ }
+ if(features){
+  features.innerHTML='';
+  const ranked=usageSections.map(id=>({id,name:usageSectionNames[id]||id,count:Math.max(0,Number(appUsage.sectionVisits[id])||0)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
+  if(!ranked.length){const p=document.createElement('p');p.className='muted';p.textContent='Feature visits will appear as students explore StudyBuddy.';features.append(p)}
+  ranked.forEach(item=>{const row=document.createElement('div');row.className='analytics-chapter';const head=document.createElement('div');head.className='analytics-chapter-head';const name=document.createElement('b');name.textContent=item.name;const count=document.createElement('span');count.textContent=item.count+' visits';head.append(name,count);row.append(head);features.append(row)});
+ }
 }
 let usageLastTick=Date.now();
-setInterval(()=>{const now=Date.now(),seconds=Math.max(0,Math.min(20,Math.floor((now-usageLastTick)/1000)));usageLastTick=now;if(!document.hidden&&seconds){appUsage.seconds=(Number(appUsage.seconds)||0)+seconds;saveUsage();renderUsageAnalytics()}},10000);
+setInterval(()=>{const now=Date.now(),seconds=Math.max(0,Math.min(20,Math.floor((now-usageLastTick)/1000)));usageLastTick=now;if(!document.hidden&&seconds){appUsage.seconds=(Number(appUsage.seconds)||0)+seconds;ensureUsageDay(usageDay()).seconds+=seconds;saveUsage();renderUsageAnalytics()}},10000);
 function recordCurrentSection(){const id=(location.hash||'#home').slice(1);recordSectionUsage(usageSections.includes(id)?id:'home');saveUsage();renderUsageAnalytics()}
 recordCurrentSection();
 window.addEventListener('hashchange',recordCurrentSection);
@@ -1125,7 +1157,7 @@ function buildPrincipalReport(){
  const totalStudyMinutes=study.reduce((sum,item)=>sum+Math.max(0,Number(item.minutes)||0),0);
  const correct=answers.filter(item=>item.correct).length;
  const days=new Set([...study.map(item=>item.date),...answers.map(item=>item.date)].filter(Boolean));
- const sectionNames={home:'Home',daily:'Daily Goals',planner:'Study Planner',assistant:'Study Assistant',subjects:'Subjects',practice:'Question Practice',revision:'Revision',learning:'Learning Resources',lab:'Physics Lab',projectile:'Projectile Lab','reaction-machine':'Reaction Lab'};
+ const sectionNames={home:'Home',daily:'Student Profile',planner:'Study Planner',assistant:'Study Assistant',subjects:'Subjects',practice:'Question Practice',revision:'Revision Centre',learning:'Projects',lab:'X–Y Graph',projectile:'Projectile Lab','reaction-machine':'Reaction Lab'};
  const used=(usage.sections||[]).map(id=>sectionNames[id]||id);
  const last=usage.lastActive?new Date(usage.lastActive):null;
  const generated=new Date().toLocaleString();
@@ -1143,7 +1175,9 @@ function buildPrincipalReport(){
  '<h2>App engagement</h2><div class="report-metrics"><div><b>'+Number(usage.sessions||0)+'</b><span>App sessions recorded</span></div><div><b>'+Math.floor((Number(usage.seconds)||0)/60)+' min</b><span>App visible time</span></div><div><b>'+used.length+' / '+usageSections.length+'</b><span>Features visited</span></div><div><b>'+escapeHtml(last&&!Number.isNaN(last.getTime())?last.toLocaleString():'Not recorded')+'</b><span>Last active</span></div></div>'+
  '<h2>Learning activity</h2><div class="report-metrics"><div><b>'+totalStudyMinutes+' min</b><span>Total saved study time</span></div><div><b>'+answers.length+'</b><span>Practice questions answered</span></div><div><b>'+(answers.length?Math.round(correct/answers.length*100)+'%':'—')+'</b><span>Practice accuracy</span></div><div><b>'+days.size+'</b><span>Days with saved study or practice activity</span></div></div>'+
  '<h2>Features visited</h2><p>'+(used.length?used.map(escapeHtml).join(' • '):'No feature visits recorded yet')+'</p>'+
- '<h2>Last 7 days</h2><table><thead><tr><th>Day</th><th>Study time</th><th>Questions</th></tr></thead><tbody>'+weekRows.join('')+'</tbody></table>'+
+ '<h2>Feature visit counts</h2><table><thead><tr><th>StudyBuddy feature</th><th>Visits</th></tr></thead><tbody>'+usageSections.map(id=>({name:sectionNames[id]||id,count:Math.max(0,Number(usage.sectionVisits&&usage.sectionVisits[id])||0)})).filter(item=>item.count>0).sort((a,b)=>b.count-a.count).map(item=>'<tr><td>'+escapeHtml(item.name)+'</td><td>'+item.count+'</td></tr>').join('')+'</tbody></table>'+
+ '<h2>App activity • last 7 days</h2><table><thead><tr><th>Day</th><th>App visible time</th><th>Sessions</th></tr></thead><tbody>'+Array.from({length:7},(_,index)=>{const date=new Date();date.setHours(12,0,0,0);date.setDate(date.getDate()-(6-index));const key=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');const day=usage.daily&&usage.daily[key]||{};return '<tr><td>'+escapeHtml(date.toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}))+'</td><td>'+Math.round((Number(day.seconds)||0)/60)+' min</td><td>'+Math.max(0,Number(day.sessions)||0)+'</td></tr>'}).join('')+'</tbody></table>'+
+ '<h2>Learning activity • last 7 days</h2><table><thead><tr><th>Day</th><th>Study time</th><th>Questions</th></tr></thead><tbody>'+weekRows.join('')+'</tbody></table>'+
  '<h2>Report interpretation</h2><p>This report uses activity currently saved in this browser for the selected profile. It is not a count of all website visitors or all students across devices. For a school-wide usage report, usage events must be collected centrally in the connected database and aggregated across student accounts.</p>'+
  '<p class="report-footer">StudyBuddy • Automatically generated from recorded app and learning activity</p>';
  report.hidden=false;
