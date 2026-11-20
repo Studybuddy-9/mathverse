@@ -55,10 +55,27 @@ section[hidden]{display:none!important}
 .analytics-meter{height:8px;background:#0b1427;border-radius:20px;overflow:hidden;margin-top:8px}
 .analytics-meter span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#68e1fd,#a99bff)}
 .analytics-insight{margin-top:16px}.analytics-insight p{margin:7px 0}
-#usageWeek .analytics-day{height:160px}#usageFeatureVisits .analytics-chapter{padding:9px 0}
+#usageMonth .analytics-day{height:160px}#usageFeatureVisits .analytics-chapter{padding:9px 0}
 @media(max-width:850px){.analytics-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.analytics-layout{grid-template-columns:1fr}}
 @media(max-width:480px){.analytics-week{gap:4px;padding:10px 4px}.analytics-day small{font-size:.6rem}.analytics-day b{font-size:.65rem}}
 
+/* 30-day analytics timeline and illustrative sample */
+.analytics-month-scroll{width:100%;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:7px}
+.analytics-week.analytics-month{grid-template-columns:repeat(30,minmax(24px,1fr));gap:5px;min-width:930px}
+.analytics-month .analytics-day{height:160px;gap:5px}
+.analytics-month .analytics-day b{font-size:.65rem}
+.analytics-example{margin-top:18px}
+.analytics-example-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.analytics-example-header h3{margin:0 0 4px}
+.analytics-example-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:16px}
+.analytics-example-stat{background:#0b1427;border:1px solid var(--line);border-radius:12px;padding:14px}
+.analytics-example-stat span{display:block;color:var(--cyan);font-size:.72rem;font-weight:850}
+.analytics-example-stat strong{display:block;font-size:clamp(1.2rem,2.5vw,1.75rem);margin:4px 0}
+.analytics-example-stat p{font-size:.82rem;color:var(--muted);margin:0}
+.analytics-example-analysis{margin-top:14px;background:#0b1427;border-left:3px solid var(--cyan);border-radius:9px;padding:14px}
+.analytics-example-analysis p{margin:7px 0 0;color:var(--muted)}
+@media(max-width:760px){.analytics-example-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.analytics-example-grid{grid-template-columns:1fr}}
 /* Automatic inactivity logout */
 .session-timeout-card{margin-top:16px}.session-warning{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:#050914cc;backdrop-filter:blur(7px)}.session-warning[hidden]{display:none!important}.session-warning-panel{width:min(460px,100%);padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 80px #0008}.session-warning-panel h2{margin:0 0 8px}.session-warning-panel p{color:var(--muted)}.session-warning-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.session-warning-countdown{font-size:1.8rem;font-weight:900;color:var(--cyan);font-variant-numeric:tabular-nums}
 </style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
@@ -107,19 +124,29 @@ section[hidden]{display:none!important}
 </div>
 <div class="analytics-summary grid" style="margin-top:16px">
  <div class="card"><span class="pill">APP SESSIONS</span><h2 id="usageSessions">0</h2><p>Times this profile opened StudyBuddy</p></div>
- <div class="card"><span class="pill">APP ACTIVE TIME • 7 DAYS</span><h2 id="usageTime">0 min</h2><p>Time spent with the app visible</p></div>
+ <div class="card"><span class="pill">APP ACTIVE TIME • 30 DAYS</span><h2 id="usageTime">0 min</h2><p>Time spent with the app visible</p></div>
  <div class="card"><span class="pill">FEATURES USED</span><h2 id="usageFeatures">0 / 11</h2><p>Different StudyBuddy sections visited</p></div>
  <div class="card"><span class="pill">LAST ACTIVE</span><h2 id="usageLastActive" style="font-size:1.25rem">Not yet</h2><p>Most recent recorded activity</p></div>
 </div>
 <div class="analytics-layout">
- <div class="tool"><h3>App activity • last 7 days</h3><p class="muted">Time StudyBuddy was open and visible in this browser</p><div id="usageWeek" class="analytics-week" aria-label="Daily app activity chart"></div><p class="muted analytics-footnote">Bars show recorded active minutes; labels show each day. A session is counted when this profile opens the app.</p></div>
+ <div class="tool"><h3>App activity • last 30 days</h3><p class="muted">Daily time StudyBuddy was open and visible in this browser</p><div class="analytics-month-scroll"><div id="usageMonth" class="analytics-week analytics-month" aria-label="Daily app activity for the last 30 days"></div></div><p class="muted analytics-footnote">Each bar represents one day. Scroll horizontally to view all 30 days; app active time is separate from recorded study time.</p></div>
  <div class="tool"><h3>Most visited features</h3><p class="muted">Real section visits recorded for this student profile</p><div id="usageFeatureVisits"><p class="muted">Feature visits will appear as students explore StudyBuddy.</p></div></div>
 </div>
 <div class="analytics-layout">
  <div class="tool"><h3>Chapter performance</h3><p class="muted">Based on answers submitted in Question Practice</p><div id="analyticsChapters" class="analytics-chapters"><p class="muted">No practice data yet. Complete a Question Practice round to see chapter insights.</p></div></div>
 </div>
 <div class="tool analytics-insight"><h3>Study insights</h3><div id="analyticsInsights" class="muted" aria-live="polite">Your insights will appear after you record study time or answer practice questions.</div></div>
-<p class="muted analytics-privacy">Usage analytics are recorded from real app sessions, visible time and section visits for the selected student profile on this browser. They are not fabricated and are not a school-wide visitor count. Learning records such as practice answers and saved study sessions sync to Supabase when signed in; app-usage totals currently remain on this browser.</p>
+<div class="tool analytics-example">
+ <div class="analytics-example-header"><div><h3>Example progress analysis</h3><p class="muted">An illustration of how a 30-day student progress summary can be understood.</p></div><span class="pill">SAMPLE DATA • NOT A REAL STUDENT</span></div>
+ <div class="analytics-example-grid">
+  <div class="analytics-example-stat"><span>STUDY TIME • 30 DAYS</span><strong>9 hr 20 min</strong><p>Example recorded learning time</p></div>
+  <div class="analytics-example-stat"><span>PRACTICE QUESTIONS</span><strong>48</strong><p>Example questions answered</p></div>
+  <div class="analytics-example-stat"><span>PRACTICE ACCURACY</span><strong>83%</strong><p>40 correct out of 48</p></div>
+  <div class="analytics-example-stat"><span>ACTIVE DAYS</span><strong>18 / 30</strong><p>Days with learning activity</p></div>
+ </div>
+ <div class="analytics-example-analysis"><strong>Sample interpretation</strong><p>This example learner recorded 9 hours and 20 minutes of study across 18 active days. They answered 48 questions and got 40 correct, giving an accuracy of about 83%.</p><p><b>Example next step:</b> Review the chapters with lower practice accuracy, then complete another short question round to check improvement.</p></div>
+</div>
+<p class="muted analytics-privacy">Real usage analytics are recorded from real app sessions, visible time and section visits for the selected student profile on this browser. They are not a school-wide visitor count. The example progress analysis above is illustrative only, not actual student data. Learning records such as practice answers and saved study sessions sync to Supabase when signed in; app-usage totals currently remain on this browser.</p>
 
 </section><section id="assistant" class="tab-panel" data-tab-panel>
 <div class="heading"><div><div class="tag">YOUR PERSONAL STUDY COMPANION</div><h2>AI Study Assistant</h2><p class="muted">Ask a study question, explore a concept or practise a topic with guided help.</p></div></div>
@@ -1058,24 +1085,34 @@ function saveUsage(){try{appUsage.lastActive=new Date().toISOString();const day=
 function recordSectionUsage(id){if(!usageSections.includes(id))return;if(!appUsage.sections.includes(id))appUsage.sections.push(id);appUsage.sectionVisits[id]=Math.max(0,Number(appUsage.sectionVisits[id])||0)+1;saveUsage()}
 function renderUsageAnalytics(){
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
- let weekSeconds=0;
- for(let offset=6;offset>=0;offset--){
+ const rows=[];let monthSeconds=0;
+ for(let offset=29;offset>=0;offset--){
   const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);
   const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  weekSeconds+=Math.max(0,Number((appUsage.daily[key]||{}).seconds)||0);
+  const day=appUsage.daily[key]||{},seconds=Math.max(0,Number(day.seconds)||0);
+  monthSeconds+=seconds;
+  rows.push({date:key,label:String(d.getDate()).padStart(2,'0'),seconds,sessions:Math.max(0,Number(day.sessions)||0)});
  }
- const hours=Math.floor(weekSeconds/3600),mins=Math.floor(weekSeconds%3600/60);
+ const hours=Math.floor(monthSeconds/3600),mins=Math.floor(monthSeconds%3600/60);
  set('usageSessions',String(appUsage.sessions||0));
  set('usageTime',hours?hours+' hr '+mins+' min':mins+' min');
  set('usageFeatures',(appUsage.sections||[]).length+' / '+usageSections.length);
  const last=appUsage.lastActive?new Date(appUsage.lastActive):null;
  set('usageLastActive',last&&!Number.isNaN(last.getTime())?last.toLocaleString([],{dateStyle:'medium',timeStyle:'short'}):'Not yet');
- const chart=document.getElementById('usageWeek'),features=document.getElementById('usageFeatureVisits');
+ const chart=document.getElementById('usageMonth'),features=document.getElementById('usageFeatureVisits');
  if(chart){
   chart.innerHTML='';
-  const rows=[];for(let offset=6;offset>=0;offset--){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');const day=appUsage.daily[key]||{};rows.push({label:d.toLocaleDateString(undefined,{weekday:'short'}),seconds:Math.max(0,Number(day.seconds)||0),sessions:Math.max(0,Number(day.sessions)||0)})}
-  const max=Math.max(600,...rows.map(x=>x.seconds));
-  rows.forEach(item=>{const col=document.createElement('div');col.className='analytics-day';const value=document.createElement('small');value.textContent=Math.round(item.seconds/60)+'m';const track=document.createElement('div');track.className='analytics-bar-track';track.title=item.label+': '+Math.round(item.seconds/60)+' active minutes, '+item.sessions+' sessions';const bar=document.createElement('div');bar.className='analytics-bar';bar.style.height=(item.seconds?Math.max(5,item.seconds/max*100):0)+'%';track.append(bar);const label=document.createElement('b');label.textContent=item.label;col.append(value,track,label);chart.append(col)});
+  const max=Math.max(300,...rows.map(x=>x.seconds));
+  rows.forEach(item=>{
+   const col=document.createElement('div');col.className='analytics-day';
+   const value=document.createElement('small');value.textContent=Math.round(item.seconds/60)+'m';
+   const track=document.createElement('div');track.className='analytics-bar-track';
+   track.title=item.date+': '+Math.round(item.seconds/60)+' active minutes, '+item.sessions+' sessions';
+   const bar=document.createElement('div');bar.className='analytics-bar';
+   bar.style.height=(item.seconds?Math.max(5,item.seconds/max*100):0)+'%';track.append(bar);
+   const label=document.createElement('b');label.textContent=item.label;
+   col.append(value,track,label);chart.append(col);
+  });
  }
  if(features){
   features.innerHTML='';
@@ -1095,6 +1132,12 @@ function renderAnalytics(){
  const chaptersBox=document.querySelector('#analyticsChapters'),insights=document.querySelector('#analyticsInsights');
  if(!chaptersBox||!insights)return;
  const now=new Date(),days=[];
+ let recentAppSeconds=0;
+ for(let offset=6;offset>=0;offset--){
+  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);
+  const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  recentAppSeconds+=Math.max(0,Number((appUsage.daily[key]||{}).seconds)||0);
+ }
  for(let offset=6;offset>=0;offset--){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-offset,12);days.push({date:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),label:d.toLocaleDateString(undefined,{weekday:'short'}),minutes:0,questions:0,correct:0})}
  const allStudy=readStudy(),events=readAnalyticsEvents(),byDate=new Map(days.map(d=>[d.date,d]));
  allStudy.forEach(entry=>{const day=byDate.get(entry.date);if(day)day.minutes+=Math.max(0,Number(entry.minutes)||0)});
@@ -1124,7 +1167,7 @@ function renderAnalytics(){
  const messages=[];
  if(!totalMinutes&&!totalQuestions){
   messages.push('No study sessions or practice answers have been logged in the last 7 days yet. Your study-time and practice totals stay at zero until real learning activity is recorded.');
-  if(weekSeconds>0)messages.push('StudyBuddy was open and visible for '+Math.floor(weekSeconds/60)+' minutes this week. This is app active time, not recorded study time.');
+  if(recentAppSeconds>0)messages.push('StudyBuddy was open and visible for '+Math.floor(recentAppSeconds/60)+' minutes this week. This is app active time, not recorded study time.');
   else if(appUsage.sessions>0)messages.push('StudyBuddy has recorded '+appUsage.sessions+' app sessions on this browser. Open a learning section and record a study session to build your learning report.');
  } else{
   if(totalMinutes)messages.push('You recorded '+totalMinutes+' study minutes in the last 7 days.');
