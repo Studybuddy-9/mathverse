@@ -1064,7 +1064,7 @@ function recordStudyBuddyAnswer(answer){
   stopInterval();remaining=0;const minutes=40;elapsedBeforePause=duration;startedAt=0;paint();setButtons(false);
   start.disabled=true;pause.disabled=true;finish.disabled=true;
   saveSession(minutes);
-  if(activeStudent)$('focusStatus').textContent='Great work — your 40-minute session has been saved to Progress Analytics.';
+  if(activeStudent)$('focusStatus').textContent='Your 40-minute session has been saved to Progress Analytics.';
  }
  function tick(){
   remaining=Math.max(0,duration-elapsedNow());paint();
