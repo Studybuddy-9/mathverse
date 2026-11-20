@@ -107,7 +107,7 @@ section[hidden]{display:none!important}
 </div>
 <div class="analytics-summary grid" style="margin-top:16px">
  <div class="card"><span class="pill">APP SESSIONS</span><h2 id="usageSessions">0</h2><p>Times this profile opened StudyBuddy</p></div>
- <div class="card"><span class="pill">ACTIVE TIME</span><h2 id="usageTime">0 min</h2><p>Time spent with the app visible</p></div>
+ <div class="card"><span class="pill">APP ACTIVE TIME • 7 DAYS</span><h2 id="usageTime">0 min</h2><p>Time spent with the app visible</p></div>
  <div class="card"><span class="pill">FEATURES USED</span><h2 id="usageFeatures">0 / 11</h2><p>Different StudyBuddy sections visited</p></div>
  <div class="card"><span class="pill">LAST ACTIVE</span><h2 id="usageLastActive" style="font-size:1.25rem">Not yet</h2><p>Most recent recorded activity</p></div>
 </div>
@@ -1059,7 +1059,13 @@ function saveUsage(){try{appUsage.lastActive=new Date().toISOString();const day=
 function recordSectionUsage(id){if(!usageSections.includes(id))return;if(!appUsage.sections.includes(id))appUsage.sections.push(id);appUsage.sectionVisits[id]=Math.max(0,Number(appUsage.sectionVisits[id])||0)+1;saveUsage()}
 function renderUsageAnalytics(){
  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value};
- const total=Math.max(0,Number(appUsage.seconds)||0),hours=Math.floor(total/3600),mins=Math.floor(total%3600/60);
+ let weekSeconds=0;
+ for(let offset=6;offset>=0;offset--){
+  const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()-offset);
+  const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  weekSeconds+=Math.max(0,Number((appUsage.daily[key]||{}).seconds)||0);
+ }
+ const hours=Math.floor(weekSeconds/3600),mins=Math.floor(weekSeconds%3600/60);
  set('usageSessions',String(appUsage.sessions||0));
  set('usageTime',hours?hours+' hr '+mins+' min':mins+' min');
  set('usageFeatures',(appUsage.sections||[]).length+' / '+usageSections.length);
@@ -1127,8 +1133,11 @@ function renderAnalytics(){
  });
  insights.innerHTML='';
  const messages=[];
- if(!totalMinutes&&!totalQuestions)messages.push('No activity recorded in the last 7 days yet. Save study sessions in Student Profile and answer questions in Question Practice to start building your dashboard.');
- else{
+ if(!totalMinutes&&!totalQuestions){
+  messages.push('No study sessions or practice answers have been logged in the last 7 days yet. Your study-time and practice totals stay at zero until real learning activity is recorded.');
+  if(weekSeconds>0)messages.push('StudyBuddy was open and visible for '+Math.floor(weekSeconds/60)+' minutes this week. This is app active time, not recorded study time.');
+  else if(appUsage.sessions>0)messages.push('StudyBuddy has recorded '+appUsage.sessions+' app sessions on this browser. Open a learning section and record a study session to build your learning report.');
+ } else{
   if(totalMinutes)messages.push('You recorded '+totalMinutes+' study minutes in the last 7 days.');
   if(totalQuestions)messages.push('Your practice accuracy is '+Math.round(totalCorrect/totalQuestions*100)+'% across '+totalQuestions+' answered questions.');
   if(performance.length){const strongest=performance.filter(x=>x.total>=2).sort((a,b)=>b.correct/b.total-a.correct/a.total)[0];const focus=performance.filter(x=>x.total>=2).sort((a,b)=>a.correct/a.total-b.correct/b.total)[0];if(strongest)messages.push('Strongest recent chapter: '+strongest.name+' ('+Math.round(strongest.correct/strongest.total*100)+'%).');if(focus&&focus!==strongest)messages.push('Revision suggestion: revisit '+focus.name+' and practise a few more questions.');}
